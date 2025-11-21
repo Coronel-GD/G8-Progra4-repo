@@ -1,65 +1,49 @@
 from django.contrib import admin
+from import_export.admin import ImportExportModelAdmin
+from import_export import resources
+from .models import Item, OrderItem, Order, Payment
 
-from .models import Item, OrderItem, Order, Payment, Coupon, Refund, Address, UserProfile
+# --- Resources para import/export ---
 
+class ItemResource(resources.ModelResource):
+    class Meta:
+        model = Item
+        import_id_fields = ['id']
+        fields = ('id', 'title', 'price', 'discount_price', 'category', 'label', 'slug', 'description', 'currency')
 
-def make_refund_accepted(modeladmin, request, queryset):
-    queryset.update(refund_requested=False, refund_granted=True)
+class OrderResource(resources.ModelResource):
+    class Meta:
+        model = Order
+        import_id_fields = ['id']
+        fields = ('id', 'user', 'ordered', 'ordered_date')
 
+# --- Admin ---
 
-make_refund_accepted.short_description = 'Update orders to refund granted'
-
-
-class OrderAdmin(admin.ModelAdmin):
-    list_display = ['user',
-                    'ordered',
-                    'being_delivered',
-                    'received',
-                    'refund_requested',
-                    'refund_granted',
-                    'shipping_address',
-                    'billing_address',
-                    'payment',
-                    'coupon'
-                    ]
-    list_display_links = [
-        'user',
-        'shipping_address',
-        'billing_address',
-        'payment',
-        'coupon'
-    ]
-    list_filter = ['ordered',
-                   'being_delivered',
-                   'received',
-                   'refund_requested',
-                   'refund_granted']
-    search_fields = [
-        'user__username',
-        'ref_code'
-    ]
-    actions = [make_refund_accepted]
+@admin.register(Item)
+class ItemAdmin(ImportExportModelAdmin):
+    resource_class = ItemResource
+    list_display = ('title', 'price', 'discount_price', 'category', 'label')
+    search_fields = ('title',)
+    list_filter = ('category', 'label')
 
 
-class AddressAdmin(admin.ModelAdmin):
-    list_display = [
-        'user',
-        'street_address',
-        'apartment_address',
-        'country',
-        'zip',
-        'address_type',
-        'default'
-    ]
-    list_filter = ['default', 'address_type', 'country']
-    search_fields = ['user', 'street_address', 'apartment_address', 'zip']
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ('user', 'item', 'quantity', 'ordered')
+    list_filter = ('ordered',)
+    search_fields = ('user__username', 'item__title')
 
 
-admin.site.register(Item)
-admin.site.register(OrderItem)
-admin.site.register(Order, OrderAdmin)
-admin.site.register(Payment)
-admin.site.register(Coupon)
-admin.site.register(Refund)
-admin.site.register(Address, AddressAdmin)
-admin.site.register(UserProfile)
+@admin.register(Order)
+class OrderAdmin(ImportExportModelAdmin):
+    resource_class = OrderResource
+    list_display = ('user', 'ordered', 'ordered_date')
+    list_filter = ('ordered',)
+    search_fields = ('user__username',)
+    filter_horizontal = ('items',)
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ('mercadopago_id', 'user', 'amount', 'timestamp')
+    search_fields = ('mercadopago_id', 'user__username')

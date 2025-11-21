@@ -1,80 +1,67 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block content %}
-  <main>
-    <div class="container">
 
-    <div class="table-responsive text-nowrap">
-    <h2>Order Summary</h2>
-    <table class="table">
-        <thead>
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Item title</th>
-            <th scope="col">Price</th>
-            <th scope="col">Quantity</th>
-            <th scope="col">Total Item Price</th>
-        </tr>
+<div class="container mt-5">
+
+  <h2 class="mb-4">Resumen del Pedido</h2>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {% if order and order.items.all %}
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Cantidad</th>
+            <th>Total</th>
+            <th>Acciones</th>
+          </tr>
         </thead>
         <tbody>
-        {% for order_item in object.items.all %}
-        <tr>
-            <th scope="row">{{ forloop.counter }}</th>
-            <td>{{ order_item.item.title }}</td>
-            <td>{{ order_item.item.price }}</td>
-            <td>
-                <a href="{% url 'core:remove-single-item-from-cart' order_item.item.slug %}"><i class="fas fa-minus mr-2"></i></a>
-                {{ order_item.quantity }}
-                <a href="{% url 'core:add-to-cart' order_item.item.slug %}"><i class="fas fa-plus ml-2"></i></a>
-            </td>
-            <td>
-            {% if order_item.item.discount_price %}
-                ${{ order_item.get_total_discount_item_price }}
-                <span class="badge badge-primary">Saving ${{ order_item.get_amount_saved }}</span>
-            {% else %}
-                ${{ order_item.get_total_item_price }}
-            {% endif %}
-            <a style='color: red;' href="{% url 'core:remove-from-cart' order_item.item.slug %}">
-                <i class="fas fa-trash float-right"></i>
-            </a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan='5'>Your cart is empty</td>
-        </tr>
-        <tr>
-            <td colspan="5">
-            <a class='btn btn-primary float-right' href='/'>Continue shopping</a>
-            </td>
-        </tr>
-        {% endfor %}
-        {% if object.coupon %}
-        <tr>
-            <td colspan="4"><b>Coupon</b></td>
-            <td><b>-${{ object.coupon.amount }}</b></td>
-        </tr>
-        {% endif %}
-        {% if object.get_total %}
-        <tr>
-            <td colspan="4"><b>Order Total</b></td>
-            <td><b>${{ object.get_total }}</b></td>
-        </tr>
-        <tr>
-            <td colspan="5">
-            <a class='btn btn-warning float-right ml-2' href='/checkout/'>Proceed to checkout</a>
-            <a class='btn btn-primary float-right' href='/'>Continue shopping</a>
-            </td>
-        </tr>
-        {% endif %}
+          {% for order_item in order.items.all %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>
+                <strong>{{ order_item.item.title }}</strong>
+                <div class="text-muted small">{{ order_item.item.description|truncatechars:80 }}</div>
+              </td>
+              <td>${{ order_item.item.price }}</td>
+              <td>{{ order_item.quantity }}</td>
+              <td>${{ order_item.get_final_price }}</td>
+              <td>
+                <a class="btn btn-sm btn-success" href="{% url 'core:add-to-cart' order_item.item.slug %}">+1</a>
+                <a class="btn btn-sm btn-warning" href="{% url 'core:remove-single-item-from-cart' order_item.item.slug %}">-1</a>
+                <a class="btn btn-sm btn-danger" href="{% url 'core:remove-from-cart' order_item.item.slug %}">Eliminar</a>
+              </td>
+            </tr>
+          {% endfor %}
         </tbody>
-    </table>
-
+      </table>
     </div>
 
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <h4>Total: ${{ order.get_total }}</h4>
+
+      <a href="{% url 'core:payment' %}" class="btn btn-primary btn-lg">
+        Pagar con MercadoPago
+      </a>
     </div>
-  </main>
 
-{% endblock content %}
+  {% else %}
+    <div class="text-center py-5">
+      <h4>Tu carrito está vacío</h4>
+      <a href="{% url 'core:home' %}" class="btn btn-outline-primary mt-3">Seguir comprando</a>
+    </div>
+  {% endif %}
 
+</div>
 
+{% endblock %}

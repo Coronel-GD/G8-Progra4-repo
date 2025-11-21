@@ -4,7 +4,7 @@
     <div class="container">
 
       <!-- Brand -->
-      <a class="navbar-brand waves-effect" href="/">
+      <a class="navbar-brand waves-effect" href="{% url 'core:home' %}">
         <strong class="blue-text">DJe-commerce</strong>
       </a>
 
@@ -19,15 +19,18 @@
 
         <!-- Left -->
         <ul class="navbar-nav mr-auto">
-          {% comment %} <li class="nav-item active">
-            <a class="nav-link waves-effect" href="/">Home
+          {% comment %}
+          <li class="nav-item active">
+            <a class="nav-link waves-effect" href="{% url 'core:home' %}">Home
               <span class="sr-only">(current)</span>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link waves-effect" href="/checkout">
-            Checkout</a>
-          </li> {% endcomment %}
+            <a class="nav-link waves-effect" href="{% url 'core:order-summary' %}">
+              Carrito
+            </a>
+          </li>
+          {% endcomment %}
         </ul>
 
         <!-- Right -->
@@ -35,9 +38,8 @@
           {% if request.user.is_authenticated %}
           <li class="nav-item">
             <a href="{% url 'core:order-summary' %}" class="nav-link waves-effect">
-              <span class="badge red z-depth-1 mr-1"> {{ request.user|cart_item_count }} </span>
               <i class="fas fa-shopping-cart"></i>
-              <span class="clearfix d-none d-sm-inline-block"> Cart </span>
+              <span class="clearfix d-none d-sm-inline-block"> Carrito </span>
             </a>
           </li>
           <li class="nav-item">
@@ -61,4 +63,4 @@
       </div>
 
     </div>
-  </nav>
+</nav>

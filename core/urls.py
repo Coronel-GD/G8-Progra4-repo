@@ -1,29 +1,38 @@
 from django.urls import path
 from .views import (
-    ItemDetailView,
-    CheckoutView,
     HomeView,
+    ProductDetailView,
     OrderSummaryView,
     add_to_cart,
     remove_from_cart,
     remove_single_item_from_cart,
     PaymentView,
-    AddCouponView,
-    RequestRefundView
+    PaymentSuccessView,
+    PaymentPendingView,
+    PaymentFailureView,
+    MercadoPagoWebhookView,
 )
 
-app_name = 'core'
+app_name = "core"
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
-    path('checkout/', CheckoutView.as_view(), name='checkout'),
+    path('product/<slug>/', ProductDetailView.as_view(), name='product'),
     path('order-summary/', OrderSummaryView.as_view(), name='order-summary'),
-    path('product/<slug>/', ItemDetailView.as_view(), name='product'),
+
+    # Carrito
     path('add-to-cart/<slug>/', add_to_cart, name='add-to-cart'),
-    path('add-coupon/', AddCouponView.as_view(), name='add-coupon'),
     path('remove-from-cart/<slug>/', remove_from_cart, name='remove-from-cart'),
-    path('remove-item-from-cart/<slug>/', remove_single_item_from_cart,
-         name='remove-single-item-from-cart'),
-    path('payment/<payment_option>/', PaymentView.as_view(), name='payment'),
-    path('request-refund/', RequestRefundView.as_view(), name='request-refund')
+    path('remove-item-from-cart/<slug>/', remove_single_item_from_cart, name='remove-single-item-from-cart'),
+
+    # Pago Mercado Pago
+    path('payment/', PaymentView.as_view(), name='payment'),
+
+    # Resultados de pago
+    path('payment/success/', PaymentSuccessView.as_view(), name='payment-success'),
+    path('payment/pending/', PaymentPendingView.as_view(), name='payment-pending'),
+    path('payment/failure/', PaymentFailureView.as_view(), name='payment-failure'),
+
+    # Webhook Mercado Pago
+    path('mercadopago/webhook/', MercadoPagoWebhookView.as_view(), name='mp-webhook'),
 ]

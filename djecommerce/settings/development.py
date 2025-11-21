@@ -1,15 +1,13 @@
 from .base import *
+import os
+from decouple import config
 
 DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1']
 
-INSTALLED_APPS += [
-    'debug_toolbar'
-]
-
-MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
-
-# DEBUG TOOLBAR SETTINGS
+# Debug Toolbar solo en desarrollo
+INSTALLED_APPS += ['debug_toolbar']
+MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
 
 DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.versions.VersionsPanel',
@@ -26,10 +24,8 @@ DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.redirects.RedirectsPanel',
 ]
 
-
 def show_toolbar(request):
     return True
-
 
 DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': False,
