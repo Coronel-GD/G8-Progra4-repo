@@ -82,3 +82,12 @@ LOGIN_REDIRECT_URL = '/'
 # CRISPY FORMS
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['email', 'profile'],
+    },
+    'github': {
+        'SCOPE': ['user:email'],
+    }
+}
