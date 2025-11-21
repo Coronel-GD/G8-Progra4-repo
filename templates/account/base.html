@@ -1,1 +1,24 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block head_title %}{% block inner_title %}{% endblock %}{% endblock %}
+
+{% block content %}
+<main class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="card shadow-sm p-4">
+                <h2 class="mb-4 text-center">
+                    {% block page_title %}{% endblock %}
+                </h2>
+
+                {% block account_content %}
+                <!-- Aquí se insertan los formularios de login / signup -->
+                {% endblock %}
+            </div>
+
+        </div>
+    </div>
+</main>
+{% endblock %}
