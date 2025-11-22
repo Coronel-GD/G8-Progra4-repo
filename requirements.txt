@@ -1,4 +1,8 @@
 Django>=4.2
+python-decouple
 django-allauth
-psycopg2-binary
+django-debug-toolbar
 Pillow
+requests
+crispy-bootstrap5
+django-crispy-forms
