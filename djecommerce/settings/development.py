@@ -1,6 +1,6 @@
 from .base import *
 import os
-from decouple import config
+import os
 
 DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1']
@@ -34,10 +34,21 @@ DEBUG_TOOLBAR_CONFIG = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': config('DB_NAME', default='ecommerce_db'),
+        'USER': config('DB_USER', default='postgres'),
+        'PASSWORD': config('DB_PASSWORD', default='postgres'),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
     }
 }
 
-STRIPE_PUBLIC_KEY = config('STRIPE_TEST_PUBLIC_KEY')
-STRIPE_SECRET_KEY = config('STRIPE_TEST_SECRET_KEY')
+# Configuración de GDAL para Windows (PostgreSQL 17)
+import os
+GDAL_LIBRARY_PATH = r'C:\Program Files\PostgreSQL\17\bin\libgdal-35.dll'
+GEOS_LIBRARY_PATH = r'C:\Program Files\PostgreSQL\17\bin\libgeos_c.dll'
+
+# Agregar la ruta de bin al PATH del sistema para cargar dependencias
+# os.environ['PATH'] = r'C:\Program Files\PostgreSQL\17\bin' + ';' + os.environ['PATH']
+
+

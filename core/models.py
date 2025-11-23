@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.db import models
+from django.contrib.gis.db import models
 from django.shortcuts import reverse
 
 CATEGORY_CHOICES = (
@@ -68,6 +68,7 @@ class Order(models.Model):
     received = models.BooleanField(default=False)
     refund_requested = models.BooleanField(default=False)
     refund_granted = models.BooleanField(default=False)
+    shipping_cost = models.FloatField(default=0.0)
 
     def __str__(self):
         return f"Order {self.pk} - {self.user.username}"
@@ -76,7 +77,7 @@ class Order(models.Model):
         total = 0
         for order_item in self.items.all():
             total += order_item.get_final_price()
-        return total
+        return total + self.shipping_cost
 
 
 class Payment(models.Model):
@@ -87,3 +88,32 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment {self.pk} - {self.user.username if self.user else 'anon'}"
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    stripe_customer_id = models.CharField(max_length=50, blank=True, null=True)
+    one_click_purchasing = models.BooleanField(default=False)
+    
+    # Address Fields
+    street_address = models.CharField(max_length=100, blank=True, null=True)
+    apartment_address = models.CharField(max_length=100, blank=True, null=True)
+    zip_code = models.CharField(max_length=20, blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True)
+    location = models.PointField(blank=True, null=True)  # Coordenadas (longitud, latitud)
+
+    def __str__(self):
+        return self.user.username
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def save_user_profile(sender, instance, **kwargs):
+    instance.userprofile.save()

@@ -6,6 +6,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__)))
 )
 
+from decouple import Config, RepositoryEnv
+env_path = os.path.join(BASE_DIR, '.env')
+if os.path.exists(env_path):
+    config = Config(RepositoryEnv(env_path))
+
 # === Security ===
 SECRET_KEY = config('SECRET_KEY')
 
@@ -14,6 +19,7 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.gis',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -21,6 +27,7 @@ INSTALLED_APPS = [
 
     # Librerías externas
     'import_export',
+    'corsheaders',  # CORS
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -28,17 +35,42 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.github',
     'crispy_forms',
     'crispy_bootstrap5',
-    'django_countries',
+
 
     # Apps locales
     'core',
+
+    # API
+    'rest_framework',
+    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
 ]
+
+REST_USE_JWT = True
+JWT_AUTH_COOKIE = 'my-app-auth'
+JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token'
+REST_AUTH_TOKEN_MODEL = None
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
 
 SITE_ID = 1
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # CORS Middleware (antes de CommonMiddleware)
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -46,6 +78,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True  # Permitir todos los orígenes (para desarrollo)
 
 ROOT_URLCONF = 'djecommerce.urls'
 WSGI_APPLICATION = 'djecommerce.wsgi.application'

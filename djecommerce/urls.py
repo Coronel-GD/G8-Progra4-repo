@@ -2,6 +2,10 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic.base import RedirectView
 from django.conf import settings
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -12,6 +16,13 @@ urlpatterns = [
 
     # Incluye todas las rutas de la app core
     path('', include(('core.urls', 'core'), namespace='core')),
+
+    # API Token
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # API Endpoints
+    path('api/', include('core.api.urls')),
 ]
 
 # Debug Toolbar solo si DEBUG=True

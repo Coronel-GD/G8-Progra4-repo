@@ -10,10 +10,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='address',
-            options={'verbose_name_plural': 'Addresses'},
-        ),
+
         migrations.AlterField(
             model_name='order',
             name='ref_code',
