@@ -1,5 +1,5 @@
 import json
-import mercadopago
+
 from django.urls import reverse
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
@@ -54,130 +54,26 @@ class PaymentView(LoginRequiredMixin, View):
             messages.error(request, "No tenés un pedido activo.")
             return redirect('core:order-summary')
 
-        access_token = getattr(settings, 'MERCADOPAGO_ACCESS_TOKEN', None)
-        if not access_token:
-            messages.error(request, "Falta configurar MERCADOPAGO_ACCESS_TOKEN en settings.")
-            return redirect('core:order-summary')
-        mp = mercadopago.SDK(access_token)
-
-        items = []
-        for oi in order.items.all():
-            qty = int(oi.quantity) if oi.quantity and oi.quantity > 0 else 1
-            final = oi.get_final_price()
-            unit_price = float(final / qty) if final else 0.0
-            title = (oi.item.title or "Producto")[:120]
-            currency = oi.item.currency or "ARS"
-            items.append({
-                "title": title,
-                "quantity": qty,
-                "unit_price": unit_price,
-                "currency_id": currency,
-            })
-
-        if not items:
-            messages.error(request, "No hay productos en el pedido.")
-            return redirect('core:order-summary')
-
-        payer_email = request.user.email or "test_user@test.com"
-        site_url = getattr(settings, "SITE_URL", "http://127.0.0.1:8000")
-
-        back_urls = {
-            "success": f"{site_url}{reverse('core:payment-success')}",
-            "failure": f"{site_url}{reverse('core:payment-failure')}",
-            "pending": f"{site_url}{reverse('core:payment-pending')}",
-        }
-        print("Back URLs enviadas:", back_urls)  # <-- debug
-
-        # En sandbox no usamos auto_return
-        preference_data = {
-            "items": items,
-            "payer": {"email": payer_email},
-            "back_urls": back_urls,
-        }
-
         try:
-            pref_resp = mp.preference().create(preference_data)
-            response = pref_resp.get("response")
-            print("Respuesta completa de MercadoPago:", response)
-
-            if not response:
-                messages.error(request, "Mercado Pago no devolvió respuesta al crear la preferencia.")
-                return redirect('core:order-summary')
-
-            sandbox = bool(getattr(settings, 'MERCADOPAGO_SANDBOX', False))
-            init_point = response.get("sandbox_init_point") if sandbox else response.get("init_point")
-            print("Init point elegido:", init_point)
-
-            if not init_point:
-                error_msg = response.get("message") or "No se encontró la URL de inicio de pago (init_point)."
-                messages.error(request, f"Error de MercadoPago: {error_msg}")
-                return redirect('core:order-summary')
-
+            from .services import MercadoPagoService
+            service = MercadoPagoService()
+            payer_email = request.user.email or "test_user@test.com"
+            
+            payment_data = service.create_preference(order, payer_email)
+            
+            # Registrar Payment localmente
             payment = Payment.objects.create(
-                mercadopago_id=str(response.get("id", "")),
+                mercadopago_id=payment_data["preference_id"],
                 user=request.user,
-                amount=order.get_total() or 0.0,
+                amount=payment_data["amount"],
             )
             order.payment = payment
             order.save()
 
-            return redirect(init_point)
+            return redirect(payment_data["init_point"])
 
         except Exception as e:
-            print("Excepción en PaymentView:", e)
-            messages.error(request, f"Error creando preferencia: {str(e)}")
-            return redirect('core:order-summary')
-
-        # 4) Payer y back URLs
-        payer_email = request.user.email or "test_user@test.com"
-        site_url = getattr(settings, "SITE_URL", "http://127.0.0.1:8000")
-
-        back_urls = {
-            "success": f"{site_url}{reverse('core:payment-success')}/",
-            "failure": f"{site_url}{reverse('core:payment-failure')}/",
-            "pending": f"{site_url}{reverse('core:payment-pending')}/",
-        }
-
-        preference_data = {
-            "items": items,
-            "payer": {"email": payer_email},
-            "back_urls": back_urls,
-            "auto_return": "approved",
-        }
-
-        # 5) Crear preferencia
-        try:
-            pref_resp = mp.preference().create(preference_data)
-            response = pref_resp.get("response")
-            print("Respuesta completa de MercadoPago:", response)
-
-            if not response:
-                messages.error(request, "Mercado Pago no devolvió respuesta al crear la preferencia.")
-                return redirect('core:order-summary')
-
-            sandbox = bool(getattr(settings, 'MERCADOPAGO_SANDBOX', False))
-            init_point = response.get("sandbox_init_point") if sandbox else response.get("init_point")
-            print("Init point elegido:", init_point)
-
-            if not init_point:
-                error_msg = response.get("message") or "No se encontró la URL de inicio de pago (init_point)."
-                messages.error(request, f"Error de MercadoPago: {error_msg}")
-                return redirect('core:order-summary')
-
-            # Registrar Payment
-            payment = Payment.objects.create(
-                mercadopago_id=str(response.get("id", "")),
-                user=request.user,
-                amount=order.get_total() or 0.0,
-            )
-            order.payment = payment
-            order.save()
-
-            return redirect(init_point)
-
-        except Exception as e:
-            print("Excepción en PaymentView:", e)
-            messages.error(request, f"Error creando preferencia: {str(e)}")
+            messages.error(request, f"Error procesando el pago: {str(e)}")
             return redirect('core:order-summary')
 
 # =========================
@@ -191,13 +87,14 @@ class MercadoPagoWebhookView(View):
     def post(self, request, *args, **kwargs):
         try:
             data = json.loads(request.body)
-            mp = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+            from .services import MercadoPagoService
+            service = MercadoPagoService()
 
             payment_id = data.get('data', {}).get('id') or data.get('id')
             if not payment_id:
                 return JsonResponse({"error": "Missing payment id"}, status=400)
 
-            info = mp.payment().get(payment_id).get("response", {})
+            info = service.get_payment_info(payment_id)
             payment = Payment.objects.filter(mercadopago_id=str(payment_id)).first()
 
             if not payment:

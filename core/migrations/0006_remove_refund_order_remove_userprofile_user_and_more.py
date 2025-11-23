@@ -18,27 +18,13 @@ class Migration(migrations.Migration):
             model_name='userprofile',
             name='user',
         ),
-        migrations.RemoveField(
-            model_name='order',
-            name='billing_address',
-        ),
+
         migrations.RemoveField(
             model_name='order',
             name='coupon',
         ),
-        migrations.RemoveField(
-            model_name='order',
-            name='shipping_address',
-        ),
-        migrations.RemoveField(
-            model_name='payment',
-            name='stripe_charge_id',
-        ),
-        migrations.AddField(
-            model_name='payment',
-            name='mercadopago_id',
-            field=models.CharField(blank=True, max_length=128),
-        ),
+
+
         migrations.AlterField(
             model_name='item',
             name='description',
@@ -69,9 +55,7 @@ class Migration(migrations.Migration):
             name='quantity',
             field=models.PositiveIntegerField(default=1),
         ),
-        migrations.DeleteModel(
-            name='Address',
-        ),
+
         migrations.DeleteModel(
             name='Coupon',
         ),

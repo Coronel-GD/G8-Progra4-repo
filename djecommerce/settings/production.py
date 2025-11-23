@@ -12,14 +12,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST'),
-        'PORT': ''
+        'PORT': config('DB_PORT', default='5432')
     }
 }
-
-STRIPE_PUBLIC_KEY = config('STRIPE_LIVE_PUBLIC_KEY')
-STRIPE_SECRET_KEY = config('STRIPE_LIVE_SECRET_KEY')
