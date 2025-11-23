@@ -2,35 +2,55 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.shortcuts import reverse
 
-CATEGORY_CHOICES = (
-    ('S', 'Shirt'),
-    ('SW', 'Sport wear'),
-    ('OW', 'Outwear'),
-)
+class Category(models.Model):
+    title = models.CharField(max_length=100)
+    slug = models.SlugField()
+    description = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='categories/', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
 
-LABEL_CHOICES = (
-    ('P', 'primary'),
-    ('S', 'secondary'),
-    ('D', 'danger'),
-)
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = 'Categoría'
+        verbose_name_plural = 'Categorías'
+
+
+class Label(models.Model):
+    title = models.CharField(max_length=50, verbose_name='Nombre')
+    css_class = models.CharField(max_length=20, verbose_name='Clase CSS', help_text='ej: primary, secondary, danger, success')
+    color = models.CharField(max_length=7, verbose_name='Color (Hex)', blank=True, null=True, help_text='ej: #FF5733')
+    is_active = models.BooleanField(default=True, verbose_name='Activa')
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = 'Etiqueta'
+        verbose_name_plural = 'Etiquetas'
 
 
 class Item(models.Model):
-    title = models.CharField(max_length=120)
-    price = models.FloatField()
-    discount_price = models.FloatField(blank=True, null=True)
-    category = models.CharField(choices=CATEGORY_CHOICES, max_length=2)
-    label = models.CharField(choices=LABEL_CHOICES, max_length=1, blank=True, null=True)
-    slug = models.SlugField(unique=True)
-    description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='products/', blank=True, null=True)
-    currency = models.CharField(max_length=3, default='ARS')
+    title = models.CharField(max_length=120, verbose_name='Título')
+    price = models.FloatField(verbose_name='Precio')
+    discount_price = models.FloatField(blank=True, null=True, verbose_name='Precio con descuento')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, verbose_name='Categoría')
+    label = models.ForeignKey(Label, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Etiqueta')
+    slug = models.SlugField(unique=True, verbose_name='Slug (URL amigable)')
+    description = models.TextField(blank=True, verbose_name='Descripción')
+    image = models.ImageField(upload_to='products/', blank=True, null=True, verbose_name='Imagen')
+    currency = models.CharField(max_length=3, default='ARS', verbose_name='Moneda')
 
     def __str__(self):
         return self.title
 
     def get_absolute_url(self):
         return reverse('core:product', kwargs={'slug': self.slug})
+
+    class Meta:
+        verbose_name = 'Producto'
+        verbose_name_plural = 'Productos'
 
 
 class OrderItem(models.Model):
@@ -54,6 +74,10 @@ class OrderItem(models.Model):
         if self.item.discount_price:
             return self.get_total_discount_item_price()
         return self.get_total_item_price()
+
+    class Meta:
+        verbose_name = 'Item de Orden'
+        verbose_name_plural = 'Items de Orden'
 
 
 class Order(models.Model):
@@ -79,6 +103,10 @@ class Order(models.Model):
             total += order_item.get_final_price()
         return total + self.shipping_cost
 
+    class Meta:
+        verbose_name = 'Orden'
+        verbose_name_plural = 'Ordenes'
+
 
 class Payment(models.Model):
     mercadopago_id = models.CharField(max_length=128, blank=True)
@@ -88,6 +116,10 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment {self.pk} - {self.user.username if self.user else 'anon'}"
+
+    class Meta:
+        verbose_name = 'Pago'
+        verbose_name_plural = 'Pagos'
 
 
 class UserProfile(models.Model):
@@ -105,6 +137,10 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+    class Meta:
+        verbose_name = 'Perfil de Usuario'
+        verbose_name_plural = 'Perfiles de Usuario'
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver

@@ -70,6 +70,7 @@ SITE_ID = 1
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",  # Agregado para soporte de idiomas
     "corsheaders.middleware.CorsMiddleware",  # CORS Middleware (antes de CommonMiddleware)
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -100,7 +101,7 @@ TEMPLATES = [
     },
 ]
 
-LANGUAGE_CODE = 'es-ar'
+LANGUAGE_CODE = 'es'
 TIME_ZONE = 'America/Argentina/Buenos_Aires'
 
 USE_I18N = True
