@@ -11,7 +11,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import Item, OrderItem, Order, Payment
+from .models import Item, OrderItem, Order, Payment, Category
 
 # =========================
 # HELPERS
