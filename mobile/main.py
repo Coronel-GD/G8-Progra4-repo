@@ -1,58 +1,105 @@
-from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.button import Button
+from kivymd.app import MDApp
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.list import MDList
+from kivymd.uix.card import MDCard
+from kivymd.uix.label import MDLabel
+from kivymd.uix.button import MDFloatingActionButton, MDRaisedButton
+from kivymd.uix.toolbar import MDTopAppBar
+from kivymd.uix.screen import MDScreen
+from kivy.metrics import dp
+from kivy.clock import Clock
 import requests
 import threading
 
-# URL del backend (localhost desde el emulador/PC)
-# Si corres esto en PC local: http://127.0.0.1:8000
-# Si corres en Android Emulator: http://10.0.2.2:8000
-API_URL = "http://127.0.0.1:8000/api/products/"
-
-from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.button import Button
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.gridlayout import GridLayout
-from kivy.core.window import Window
-import requests
-import threading
+from kivy.utils import platform
 
 # URL del backend
-API_URL = "http://127.0.0.1:8000/api/products/"
+# Si corres esto en PC local: http://127.0.0.1:8000
+# Si corres en Android Emulator: http://10.0.2.2:8000
+if platform == "android":
+    API_URL = "http://10.0.2.2:8000/api/products/"
+else:
+    API_URL = "http://127.0.0.1:8000/api/products/"
 
-class MobileApp(App):
+class ProductCard(MDCard):
+    def __init__(self, title, price, **kwargs):
+        super().__init__(**kwargs)
+        self.orientation = "vertical"
+        self.size_hint_y = None
+        self.height = dp(120)
+        self.padding = dp(15)
+        self.spacing = dp(10)
+        self.radius = [15]
+        self.elevation = 4
+        self.ripple_behavior = True
+        
+        # Title
+        self.add_widget(MDLabel(
+            text=title,
+            theme_text_color="Primary",
+            font_style="H6",
+            size_hint_y=0.6,
+            bold=True
+        ))
+        
+        # Price
+        self.add_widget(MDLabel(
+            text=f"${price}",
+            theme_text_color="Secondary",
+            font_style="Subtitle1",
+            size_hint_y=0.4
+        ))
+
+class MobileApp(MDApp):
     def build(self):
-        self.main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        self.theme_cls.primary_palette = "Teal"
+        self.theme_cls.accent_palette = "Orange"
+        self.theme_cls.theme_style = "Light"
         
-        # Header
-        self.header = Label(text="E-commerce App", size_hint=(1, 0.1), font_size='20sp', bold=True)
-        self.main_layout.add_widget(self.header)
+        # Main Screen
+        screen = MDScreen()
         
-        # Area de contenido (Lista de productos)
-        self.scroll_view = ScrollView(size_hint=(1, 0.8))
-        self.product_list = GridLayout(cols=1, spacing=10, size_hint_y=None)
-        self.product_list.bind(minimum_height=self.product_list.setter('height'))
+        # Main Layout
+        main_layout = MDBoxLayout(orientation='vertical')
+        
+        # App Bar
+        self.toolbar = MDTopAppBar(
+            title="E-commerce App",
+            elevation=4,
+            pos_hint={"top": 1}
+        )
+        self.toolbar.right_action_items = [["reload", lambda x: self.load_products()]]
+        main_layout.add_widget(self.toolbar)
+        
+        # Content Area
+        self.scroll_view = MDScrollView()
+        self.product_list = MDList(padding=dp(10), spacing=dp(10))
         self.scroll_view.add_widget(self.product_list)
-        self.main_layout.add_widget(self.scroll_view)
+        main_layout.add_widget(self.scroll_view)
         
-        # Botón de recarga
-        self.refresh_button = Button(text="Cargar Productos", size_hint=(1, 0.1))
-        self.refresh_button.bind(on_press=self.load_products)
-        self.main_layout.add_widget(self.refresh_button)
+        screen.add_widget(main_layout)
         
-        return self.main_layout
+        # Load initial data
+        self.load_products()
+        
+        return screen
 
-    def load_products(self, instance):
-        self.refresh_button.text = "Cargando..."
+    def load_products(self, instance=None):
+        # Show loading state if possible, or just clear list
         self.product_list.clear_widgets()
+        loading_label = MDLabel(
+            text="Cargando productos...",
+            halign="center",
+            theme_text_color="Hint"
+        )
+        self.product_list.add_widget(loading_label)
+        
         threading.Thread(target=self._fetch_products).start()
 
     def _fetch_products(self):
         try:
-            response = requests.get(API_URL)
+            response = requests.get(API_URL, timeout=10)
             if response.status_code == 200:
                 data = response.json()
                 if isinstance(data, list):
@@ -60,48 +107,52 @@ class MobileApp(App):
                 else:
                     products = data.get('results', [])
                 
-                self.update_ui_with_products(products)
+                Clock.schedule_once(lambda dt: self.update_ui_with_products(products))
             else:
-                self.update_error(f"Error: {response.status_code}")
+                Clock.schedule_once(lambda dt: self.show_error(f"Error del servidor: {response.status_code}"))
+        except requests.exceptions.ConnectionError:
+            Clock.schedule_once(lambda dt: self.show_error("No se pudo conectar al servidor.\nVerifique que el backend esté corriendo."))
         except Exception as e:
-            self.update_error(f"Error de conexión: {str(e)}")
+            Clock.schedule_once(lambda dt: self.show_error(f"Error inesperado: {str(e)}"))
 
     def update_ui_with_products(self, products):
-        # Esta función debería llamarse idealmente con Clock.schedule_once en una app real compleja
-        # pero para este prototipo lo haremos directo, si falla usaremos Clock
-        from kivy.clock import Clock
-        Clock.schedule_once(lambda dt: self._populate_list(products))
-
-    def _populate_list(self, products):
-        self.refresh_button.text = "Recargar Productos"
+        self.product_list.clear_widgets()
+        
         if not products:
-            self.product_list.add_widget(Label(text="No hay productos disponibles", size_hint_y=None, height=40))
+            self.product_list.add_widget(MDLabel(
+                text="No hay productos disponibles",
+                halign="center",
+                theme_text_color="Secondary"
+            ))
             return
 
         for product in products:
-            # Crear un "card" simple para cada producto
-            card = BoxLayout(orientation='vertical', size_hint_y=None, height=100, padding=5)
-            
-            # Nombre
             name = product.get('title', 'Sin nombre')
-            lbl_name = Label(text=name, bold=True, size_hint_y=0.6)
-            card.add_widget(lbl_name)
-            
-            # Precio
             price = product.get('price', '0.00')
-            lbl_price = Label(text=f"${price}", color=(0, 1, 0, 1), size_hint_y=0.4)
-            card.add_widget(lbl_price)
             
+            card = ProductCard(title=name, price=price)
             self.product_list.add_widget(card)
 
-    def update_error(self, error_msg):
-        from kivy.clock import Clock
-        Clock.schedule_once(lambda dt: self._show_error(error_msg))
-
-    def _show_error(self, error_msg):
-        self.refresh_button.text = "Reintentar"
+    def show_error(self, error_msg):
         self.product_list.clear_widgets()
-        self.product_list.add_widget(Label(text=error_msg, color=(1, 0, 0, 1)))
+        
+        error_box = MDBoxLayout(orientation="vertical", spacing=dp(10), padding=dp(20), size_hint_y=None, height=dp(200))
+        
+        lbl = MDLabel(
+            text=error_msg,
+            halign="center",
+            theme_text_color="Error"
+        )
+        error_box.add_widget(lbl)
+        
+        btn = MDRaisedButton(
+            text="Reintentar",
+            pos_hint={"center_x": 0.5},
+            on_release=self.load_products
+        )
+        error_box.add_widget(btn)
+        
+        self.product_list.add_widget(error_box)
 
 if __name__ == '__main__':
     MobileApp().run()
