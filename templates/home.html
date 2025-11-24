@@ -57,7 +57,7 @@
     <!--Controls-->
     <a class="carousel-control-prev" href="#carousel-example-1z" role="button" data-slide="prev">
       <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-      <span class="sr-only">Anterior</span>
+      <span class=" sr-only">Anterior</span>
     </a>
     <a class="carousel-control-next" href="#carousel-example-1z" role="button" data-slide="next">
       <span class="carousel-control-next-icon" aria-hidden="true"></span>
@@ -122,7 +122,9 @@
           <div class="card">
 
             <div class="view overlay">
-              <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.title }}">
+              <img
+                src="{% if item.preview_image %}{{ item.preview_image.url }}{% else %}{{ item.image.url }}{% endif %}"
+                class="card-img-top" alt="{{ item.title }}">
               <a href="{{ item.get_absolute_url }}">
                 <div class="mask rgba-white-slight"></div>
               </a>
