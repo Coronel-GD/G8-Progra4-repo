@@ -7,13 +7,11 @@ databases:
 services:
   - type: web
     name: django-ecommerce
-    env: python
-    buildCommand: "./build.sh"
-    startCommand: "gunicorn djecommerce.wsgi:application"
+    env: docker
     plan: free
     envVars:
       - key: PYTHON_VERSION
-        value: 3.9.0
+        value: 3.11.5
       - key: SECRET_KEY
         generateValue: true
       - key: WEB_CONCURRENCY
