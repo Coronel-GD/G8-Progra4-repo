@@ -7,7 +7,9 @@ from .views import (
     OrderDetailView, 
     PaymentAPIView,
     GoogleLogin,
-    GitHubLogin
+    GitHubLogin,
+    RemoveSingleItemView,
+    RemoveItemView
 )
 
 urlpatterns = [
@@ -17,6 +19,8 @@ urlpatterns = [
     path('products/<slug>/', ItemDetailView.as_view(), name='product-detail'),
     path('user/', UserDetailView.as_view(), name='user-detail'),
     path('add-to-cart/', AddToCartView.as_view(), name='add-to-cart'),
+    path('remove-single-item/', RemoveSingleItemView.as_view(), name='remove-single-item'),
+    path('remove-item/', RemoveItemView.as_view(), name='remove-item'),
     path('order-summary/', OrderDetailView.as_view(), name='order-summary'),
     path('checkout/', PaymentAPIView.as_view(), name='checkout'),
 ]
