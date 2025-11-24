@@ -1,14 +1,15 @@
-"""Pantalla de detalle de producto."""
-from kivy.uix.screenmanager import Screen
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.button import Button
-from kivy.uix.scrollview import ScrollView
+"""Pantalla de detalle de producto con estilo Kickboxing."""
+from kivymd.uix.screen import MDScreen
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.label import MDLabel
+from kivymd.uix.button import MDRaisedButton, MDIconButton, MDRectangleFlatButton
+from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.card import MDCard
 from kivy.clock import Clock
+from kivy.metrics import dp
 import threading
 
-
-class ProductDetailScreen(Screen):
+class ProductDetailScreen(MDScreen):
     """Pantalla que muestra el detalle de un producto."""
     
     def __init__(self, api_service, auth_manager, **kwargs):
@@ -17,30 +18,58 @@ class ProductDetailScreen(Screen):
         self.auth_manager = auth_manager
         self.current_product = None
         
-        # Layout principal con ScrollView
-        main_layout = BoxLayout(orientation='vertical')
-        
-        scroll = ScrollView()
-        self.content_layout = BoxLayout(
+        # Layout principal
+        self.main_layout = MDBoxLayout(
             orientation='vertical',
-            padding=20,
-            spacing=15,
-            size_hint_y=None
+            md_bg_color=(0.1, 0.1, 0.1, 1)
         )
-        self.content_layout.bind(minimum_height=self.content_layout.setter('height'))
         
-        scroll.add_widget(self.content_layout)
-        main_layout.add_widget(scroll)
+        # Header
+        header = MDBoxLayout(
+            size_hint=(1, None),
+            height=dp(60),
+            padding=[10, 0],
+            spacing=10,
+            md_bg_color=(0.15, 0.15, 0.15, 1)
+        )
         
-        self.add_widget(main_layout)
+        back_btn = MDIconButton(
+            icon="arrow-left",
+            theme_text_color="Custom",
+            text_color=(1, 1, 1, 1),
+            on_press=lambda x: setattr(self.manager, 'current', 'products')
+        )
+        header.add_widget(back_btn)
+        
+        header_title = MDLabel(
+            text="DETALLE",
+            font_style="H6",
+            theme_text_color="Custom",
+            text_color=(1, 1, 1, 1),
+            bold=True
+        )
+        header.add_widget(header_title)
+        
+        self.main_layout.add_widget(header)
+        
+        # ScrollView
+        self.scroll_view = MDScrollView(size_hint=(1, 1))
+        
+        self.content_layout = MDBoxLayout(
+            orientation='vertical',
+            padding=dp(20),
+            spacing=dp(15),
+            size_hint_y=None,
+            adaptive_height=True
+        )
+        
+        self.scroll_view.add_widget(self.content_layout)
+        self.main_layout.add_widget(self.scroll_view)
+        
+        self.add_widget(self.main_layout)
     
     def set_product(self, product):
-        """
-        Configurar el producto a mostrar.
-        
-        Args:
-            product: Dict con los datos del producto
-        """
+        """Configurar el producto a mostrar."""
         self.current_product = product
         self.display_product()
     
@@ -50,125 +79,137 @@ class ProductDetailScreen(Screen):
         
         if not self.current_product:
             self.content_layout.add_widget(
-                Label(text='No hay producto seleccionado')
+                MDLabel(
+                    text='No hay producto seleccionado',
+                    halign='center',
+                    theme_text_color='Secondary'
+                )
             )
             return
         
         p = self.current_product
         
-        # Botón volver
-        back_btn = Button(
-            text='← Volver',
-            size_hint=(1, None),
-            height=50
-        )
-        back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'products'))
-        self.content_layout.add_widget(back_btn)
-        
         # Título
-        title = Label(
+        title = MDLabel(
             text=p.get('title', 'Sin título'),
-            font_size='24sp',
+            font_style='H5',
             bold=True,
+            theme_text_color='Custom',
+            text_color=(1, 1, 1, 1),
             size_hint_y=None,
-            height=60
+            adaptive_height=True
         )
         self.content_layout.add_widget(title)
         
-        # Categoría y etiqueta
+        # Categoría y etiquetas
         if p.get('category_display') or p.get('label_display'):
-            info_line = f"📂 {p.get('category_display', 'N/A')}"
+            info_line = f"{p.get('category_display', 'N/A')}"
             if p.get('label_display'):
-                info_line += f"  🏷️ {p.get('label_display')}"
+                info_line += f" • {p.get('label_display')}"
             
-            info = Label(
+            info = MDLabel(
                 text=info_line,
+                theme_text_color='Secondary',
+                font_style='Caption',
                 size_hint_y=None,
-                height=30,
-                color=(0.7, 0.7, 0.7, 1)
+                height=dp(20)
             )
             self.content_layout.add_widget(info)
         
+        # Espaciador
+        self.content_layout.add_widget(MDLabel(size_hint_y=None, height=dp(10)))
+        
         # Precio
-        price_layout = BoxLayout(size_hint_y=None, height=50, spacing=10)
+        price_layout = MDBoxLayout(
+            size_hint_y=None,
+            height=dp(50),
+            spacing=dp(10),
+            adaptive_height=True
+        )
         
         if p.get('discount_price'):
-            # Precio anterior tachado
-            old_price = Label(
+            # Precio anterior
+            old_price = MDLabel(
                 text=f"${p.get('price')}",
+                theme_text_color='Secondary',
+                font_style='Body1',
                 strikethrough=True,
-                color=(0.5, 0.5, 0.5, 1),
-                size_hint=(0.3, 1)
+                size_hint_x=None,
+                width=dp(80)
             )
             price_layout.add_widget(old_price)
             
-            # Precio con descuento
-            new_price = Label(
+            # Precio nuevo
+            new_price = MDLabel(
                 text=f"${p.get('discount_price')}",
-                font_size='22sp',
-                bold=True,
-                color=(0, 1, 0, 1),
-                size_hint=(0.7, 1)
+                theme_text_color='Custom',
+                text_color=(0, 1, 0, 1),
+                font_style='H4',
+                bold=True
             )
             price_layout.add_widget(new_price)
         else:
-            price = Label(
+            price = MDLabel(
                 text=f"${p.get('price')}",
-                font_size='22sp',
-                bold=True,
-                color=(0, 1, 0, 1)
+                theme_text_color='Custom',
+                text_color=(0, 1, 0, 1),
+                font_style='H4',
+                bold=True
             )
             price_layout.add_widget(price)
         
         self.content_layout.add_widget(price_layout)
         
         # Descripción
-        description = Label(
+        description = MDLabel(
             text=p.get('description', 'Sin descripción disponible'),
+            theme_text_color='Primary',
+            font_style='Body1',
             size_hint_y=None,
-            text_size=(None, None)
-        )
-        description.bind(
-            width=lambda *x: setattr(description, 'text_size', (description.width, None)),
-            texture_size=lambda *x: setattr(description, 'height', description.texture_size[1])
+            adaptive_height=True
         )
         self.content_layout.add_widget(description)
         
-        # Espacio
-        self.content_layout.add_widget(Label(size_hint_y=None, height=20))
+        # Espacio flexible
+        self.content_layout.add_widget(MDLabel(size_hint_y=None, height=dp(20)))
         
         # Mensaje de status
-        self.status_label = Label(
+        self.status_label = MDLabel(
             text='',
+            halign='center',
+            theme_text_color='Error',
             size_hint_y=None,
-            height=40,
-            color=(0, 1, 0, 1)
+            height=dp(30)
         )
         self.content_layout.add_widget(self.status_label)
         
         # Botón agregar al carrito
         if self.auth_manager.is_authenticated():
-            self.add_to_cart_btn = Button(
-                text='🛒 Agregar al Carrito',
-                size_hint=(1, None),
-                height=60,
-                background_color=(0.2, 0.6, 1, 1)
+            self.add_to_cart_btn = MDRaisedButton(
+                text='AGREGAR AL CARRITO',
+                size_hint_x=1,
+                height=dp(50),
+                md_bg_color=(0.8, 0, 0, 1),
+                elevation=2
             )
             self.add_to_cart_btn.bind(on_press=self.add_to_cart)
             self.content_layout.add_widget(self.add_to_cart_btn)
         else:
-            login_info = Label(
-                text='Inicia sesión para agregar al carrito',
+            login_info = MDLabel(
+                text='Inicia sesión para comprar',
+                halign='center',
+                theme_text_color='Secondary',
                 size_hint_y=None,
-                height=60,
-                color=(1, 0.5, 0, 1)
+                height=dp(30)
             )
             self.content_layout.add_widget(login_info)
             
-            login_btn = Button(
-                text='Iniciar Sesión',
-                size_hint=(1, None),
-                height=60
+            login_btn = MDRectangleFlatButton(
+                text='INICIAR SESIÓN',
+                pos_hint={'center_x': 0.5},
+                theme_text_color="Custom",
+                text_color=(1, 0, 0, 1),
+                line_color=(1, 0, 0, 1)
             )
             login_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'login'))
             self.content_layout.add_widget(login_btn)
@@ -181,11 +222,10 @@ class ProductDetailScreen(Screen):
         slug = self.current_product.get('slug')
         if not slug:
             self.status_label.text = 'Error: producto sin slug'
-            self.status_label.color = (1, 0, 0, 1)
             return
         
         self.status_label.text = 'Agregando al carrito...'
-        self.status_label.color = (0, 0, 1, 1)
+        self.status_label.theme_text_color = 'Primary'
         self.add_to_cart_btn.disabled = True
         
         threading.Thread(target=self._add_to_cart_thread, args=(slug,)).start()
@@ -200,11 +240,13 @@ class ProductDetailScreen(Screen):
         self.add_to_cart_btn.disabled = False
         
         if 'error' in result:
-            self.status_label.text = f"❌ {result['error']}"
-            self.status_label.color = (1, 0, 0, 1)
+            self.status_label.text = f"Error: {result['error']}"
+            self.status_label.theme_text_color = 'Error'
         elif 'message' in result:
-            self.status_label.text = f"✅ {result['message']}"
-            self.status_label.color = (0, 1, 0, 1)
+            self.status_label.text = f"{result['message']}"
+            self.status_label.theme_text_color = 'Custom'
+            self.status_label.text_color = (0, 1, 0, 1)
         else:
             self.status_label.text = 'Producto agregado'
-            self.status_label.color = (0, 1, 0, 1)
+            self.status_label.theme_text_color = 'Custom'
+            self.status_label.text_color = (0, 1, 0, 1)
