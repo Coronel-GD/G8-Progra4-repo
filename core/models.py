@@ -40,6 +40,8 @@ class Item(models.Model):
     slug = models.SlugField(unique=True, verbose_name='Slug (URL amigable)')
     description = models.TextField(blank=True, verbose_name='Descripción')
     image = models.ImageField(upload_to='products/', blank=True, null=True, verbose_name='Imagen')
+    preview_image = models.ImageField(upload_to='products/previews/', blank=True, null=True, verbose_name='Imagen de Previsualización', help_text='Imagen que se mostrará en la página principal. Si está vacía, se usará la imagen principal.')
+    video = models.FileField(upload_to='products/videos/', blank=True, null=True, verbose_name='Video del Producto', help_text='Video corto del producto (máximo 10 segundos)')
     currency = models.CharField(max_length=3, default='ARS', verbose_name='Moneda')
 
     def __str__(self):
