@@ -1,0 +1,126 @@
+:root {
+    --primary-color: #E60000;
+    /* Red */
+    --secondary-color: #000000;
+    /* Black */
+    --dark-bg: #121212;
+    --card-bg: #1E1E1E;
+    --text-color: #FFFFFF;
+    --accent-color: #FF3333;
+}
+
+body {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Navbar Overrides */
+.navbar {
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    border-bottom: 2px solid var(--primary-color);
+    box-shadow: 0 2px 10px rgba(230, 0, 0, 0.2);
+}
+
+.navbar-brand strong {
+    color: var(--primary-color) !important;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.nav-link {
+    color: #fff !important;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary-color) !important;
+}
+
+/* Hero Section */
+.carousel,
+.carousel-item,
+.carousel-inner {
+    height: 80vh !important;
+}
+
+.view {
+    background: linear-gradient(45deg, rgba(0, 0, 0, 0.7), rgba(230, 0, 0, 0.3));
+}
+
+/* Cards */
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid #333;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(230, 0, 0, 0.3);
+    border-color: var(--primary-color);
+}
+
+.card-body {
+    color: var(--text-color);
+}
+
+.card-title a {
+    color: var(--text-color) !important;
+}
+
+.card-title a:hover {
+    color: var(--primary-color) !important;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: white !important;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary:hover {
+    background-color: #cc0000 !important;
+    box-shadow: 0 0 15px rgba(230, 0, 0, 0.5);
+}
+
+.btn-outline-dark {
+    border-color: var(--text-color) !important;
+    color: var(--text-color) !important;
+}
+
+.btn-outline-dark:hover {
+    background-color: var(--text-color) !important;
+    color: var(--secondary-color) !important;
+}
+
+/* Footer */
+.page-footer {
+    background-color: #0a0a0a !important;
+    border-top: 3px solid var(--primary-color);
+}
+
+/* Badges */
+.badge-pill {
+    background-color: var(--primary-color) !important;
+}
+
+.badge-danger {
+    background-color: var(--primary-color) !important;
+}
+
+/* Text Utilities */
+.blue-text {
+    color: var(--primary-color) !important;
+    /* Override existing blue text */
+}
+
+.grey-text {
+    color: #aaa !important;
+}
