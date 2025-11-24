@@ -7,9 +7,9 @@
   <div class="row">
     <div class="col-md-5">
       {% if object.video %}
-      <!-- Video del producto -->
+      <!-- Video del producto (reproducción automática como GIF) -->
       <div class="mb-3">
-        <video controls class="img-fluid rounded" style="width: 100%;">
+        <video autoplay loop muted playsinline class="img-fluid rounded" style="width: 100%;">
           <source src="{{ object.video.url }}" type="video/mp4">
           Tu navegador no soporta el elemento de video.
         </video>
