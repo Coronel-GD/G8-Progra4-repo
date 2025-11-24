@@ -15,21 +15,19 @@
 
         {% get_providers as socialaccount_providers %}
         {% if socialaccount_providers %}
-          <div class="mb-3 text-center">
-            <p>Registrarse con redes sociales</p>
+        <div class="mb-3 text-center">
+          <p>Registrarse con redes sociales</p>
 
-            <a class="btn btn-outline-danger w-100 mb-2"
-               href="{% provider_login_url 'google' process='signup' %}">
-              <i class="bi bi-google"></i> Registrarse con Google
-            </a>
+          <a class="btn btn-outline-danger w-100 mb-2" href="/accounts/google/login/?process=signup">
+            <i class="bi bi-google"></i> Registrarse con Google
+          </a>
 
-            <a class="btn btn-outline-dark w-100 mb-3"
-               href="{% provider_login_url 'github' process='signup' %}">
-              <i class="bi bi-github"></i> Registrarse con GitHub
-            </a>
+          <a class="btn btn-outline-dark w-100 mb-3" href="/accounts/github/login/?process=signup">
+            <i class="bi bi-github"></i> Registrarse con GitHub
+          </a>
 
-            <div class="text-center my-3">— o usar email —</div>
-          </div>
+          <div class="text-center my-3">— o usar email —</div>
+        </div>
         {% endif %}
 
         <form method="post" action="{% url 'account_signup' %}">
