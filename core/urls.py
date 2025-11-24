@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
     HomeView,
+    LoginView,
     ProductDetailView,
     OrderSummaryView,
     add_to_cart,
@@ -13,10 +14,12 @@ from .views import (
     MercadoPagoWebhookView,
 )
 
+
 app_name = "core"
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
+    path('login/', LoginView.as_view(), name='login'),
     path('product/<slug>/', ProductDetailView.as_view(), name='product'),
     path('order-summary/', OrderSummaryView.as_view(), name='order-summary'),
 

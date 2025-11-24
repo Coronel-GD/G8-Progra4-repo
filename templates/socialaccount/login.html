@@ -1,0 +1,32 @@
+{% extends "socialaccount/base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Sign In" %}{% endblock %}
+
+{% block content %}
+<form method="post" id="oauth-form">
+    {% csrf_token %}
+</form>
+
+<script>
+    // Submit inmediato - no esperar DOMContentLoaded
+    (function () {
+        document.getElementById('oauth-form').submit();
+    })();
+</script>
+
+<noscript>
+    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+        <h1>🔄 Redirigiendo...</h1>
+        <p>Por favor haz click en el botón para continuar:</p>
+        <form method="post" style="margin-top: 20px;">
+            {% csrf_token %}
+            <button type="submit"
+                style="padding: 15px 30px; font-size: 16px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                Continuar con {{ provider.name }}
+            </button>
+        </form>
+    </div>
+</noscript>
+{% endblock %}

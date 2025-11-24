@@ -115,10 +115,53 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static_in_env')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'static_root')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media_root')
 
+# Configuración de caché para mejor rendimiento
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+        }
+    }
+}
+
+# Cachear consultas de SocialApp para OAuth más rápido
+SOCIALACCOUNT_STORE_TOKENS = False  # No guardar tokens innecesarios
+
+# Usar sesiones en caché para mejor rendimiento
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
+SESSION_CACHE_ALIAS = "default"
+
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
+
+# Configuración optimizada de OAuth
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',  # Más rápido, no pide refresh token
+        },
+        'FETCH_USERINFO': True,
+    },
+    'github': {
+        'SCOPE': [
+            'user:email',
+        ],
+    }
+}
+
+# Configuración de allauth
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_USERNAME_REQUIRED = False
+SOCIALACCOUNT_AUTO_SIGNUP = True  # Registro automático con redes sociales
 
 LOGIN_REDIRECT_URL = '/'
 

@@ -31,10 +31,19 @@ class HomeView(View):
         return render(request, 'home.html', {'object_list': items})
 
 
+class LoginView(View):
+    def get(self, request, *args, **kwargs):
+        # Si ya está autenticado, redirigir al home
+        if request.user.is_authenticated:
+            return redirect('core:home')
+        return render(request, 'account/login.html')
+
+
 class ProductDetailView(View):
     def get(self, request, slug, *args, **kwargs):
         item = get_object_or_404(Item, slug=slug)
         return render(request, 'product.html', {'object': item})
+
 
 # =========================
 # CART
