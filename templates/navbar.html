@@ -6,7 +6,8 @@
 
     <!-- Brand -->
     <a class="navbar-brand waves-effect" href="{% url 'core:home' %}">
-      <img src="{% static 'img/logo.jpg' %}" height="40" class="d-inline-block align-top mr-2" alt="Logo">
+      <img src="{% static 'img/logo.jpg' %}" height="40" class="d-inline-block align-top mr-2 rounded-circle"
+        alt="Logo">
       <strong class="blue-text">Mercadito Kickboxing</strong>
     </a>
 
@@ -23,7 +24,7 @@
       <ul class="navbar-nav mr-auto">
         {% comment %}
         <li class="nav-item active">
-          <a class="nav-link waves-effect" href="{% url 'core:home' %}">Home
+          <a class="nav-link waves-effect" href="{% url 'core:home' %}">Inicio
             <span class="sr-only">(current)</span>
           </a>
         </li>
@@ -46,18 +47,18 @@
         </li>
         <li class="nav-item">
           <a class="nav-link waves-effect" href="{% url 'account_logout' %}">
-            <span class="clearfix d-none d-sm-inline-block"> Logout </span>
+            <span class="clearfix d-none d-sm-inline-block"> Cerrar Sesión </span>
           </a>
         </li>
         {% else %}
         <li class="nav-item">
           <a class="nav-link waves-effect" href="{% url 'account_login' %}">
-            <span class="clearfix d-none d-sm-inline-block"> Login </span>
+            <span class="clearfix d-none d-sm-inline-block"> Iniciar Sesión </span>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link waves-effect" href="{% url 'account_signup' %}">
-            <span class="clearfix d-none d-sm-inline-block"> Signup </span>
+            <span class="clearfix d-none d-sm-inline-block"> Registrarse </span>
           </a>
         </li>
         {% endif %}
