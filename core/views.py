@@ -11,7 +11,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import Item, OrderItem, Order, Payment
+from .models import Item, OrderItem, Order, Payment, Category
 
 # =========================
 # HELPERS
@@ -27,8 +27,19 @@ def get_active_order(user):
 # =========================
 class HomeView(View):
     def get(self, request, *args, **kwargs):
-        items = Item.objects.all()
-        return render(request, 'home.html', {'object_list': items})
+        category_slug = request.GET.get('category')
+        
+        if category_slug:
+            items = Item.objects.filter(category__slug=category_slug)
+        else:
+            items = Item.objects.all()
+        
+        categories = Category.objects.filter(is_active=True)
+        
+        return render(request, 'home.html', {
+            'object_list': items,
+            'categories': categories
+        })
 
 
 class LoginView(View):
