@@ -114,3 +114,46 @@ class PaymentAPIView(APIView):
 
         except Exception as e:
             return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class RemoveSingleItemView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, *args, **kwargs):
+        slug = request.data.get('slug', None)
+        if not slug:
+            return Response({"message": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        item = get_object_or_404(Item, slug=slug)
+        order = Order.objects.filter(user=request.user, ordered=False).first()
+        
+        if order and order.items.filter(item__slug=item.slug).exists():
+            order_item = OrderItem.objects.filter(item=item, user=request.user, ordered=False).first()
+            if order_item.quantity > 1:
+                order_item.quantity -= 1
+                order_item.save()
+                return Response({"message": "Cantidad reducida"}, status=status.HTTP_200_OK)
+            else:
+                order.items.remove(order_item)
+                order_item.delete()
+                return Response({"message": "Producto eliminado (era el último)"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "El producto no está en el carrito"}, status=status.HTTP_404_NOT_FOUND)
+
+class RemoveItemView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, *args, **kwargs):
+        slug = request.data.get('slug', None)
+        if not slug:
+            return Response({"message": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        item = get_object_or_404(Item, slug=slug)
+        order = Order.objects.filter(user=request.user, ordered=False).first()
+        
+        if order and order.items.filter(item__slug=item.slug).exists():
+            order_item = OrderItem.objects.filter(item=item, user=request.user, ordered=False).first()
+            order.items.remove(order_item)
+            order_item.delete()
+            return Response({"message": "Producto eliminado del carrito"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "El producto no está en el carrito"}, status=status.HTTP_404_NOT_FOUND)
