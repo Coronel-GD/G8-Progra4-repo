@@ -7,9 +7,7 @@ databases:
 services:
   - type: web
     name: django-ecommerce
-    env: python
-    buildCommand: "./build.sh"
-    startCommand: "gunicorn djecommerce.wsgi:application"
+    env: docker
     plan: free
     envVars:
       - key: PYTHON_VERSION
