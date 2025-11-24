@@ -1,16 +1,17 @@
-"""Pantalla de lista de productos."""
-from kivy.uix.screenmanager import Screen
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.button import Button
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.popup import Popup
+"""Pantalla de lista de productos con estilo Kickboxing."""
+from kivymd.uix.screen import MDScreen
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.label import MDLabel
+from kivymd.uix.button import MDRaisedButton, MDIconButton, MDRectangleFlatButton
+from kivymd.uix.card import MDCard
+from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.gridlayout import MDGridLayout
+from kivymd.uix.dialog import MDDialog
 from kivy.clock import Clock
+from kivy.metrics import dp
 import threading
 
-
-class ProductsScreen(Screen):
+class ProductsScreen(MDScreen):
     """Pantalla que muestra la lista de productos."""
     
     def __init__(self, api_service, auth_manager, **kwargs):
@@ -18,32 +19,36 @@ class ProductsScreen(Screen):
         self.api_service = api_service
         self.auth_manager = auth_manager
         self.products = []
+        self.dialog = None
         
         # Layout principal
-        self.main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        self.main_layout = MDBoxLayout(
+            orientation='vertical',
+            md_bg_color=(0.1, 0.1, 0.1, 1)
+        )
         
-        # Header con título y botones (se creará dinámicamente)
-        self.header = BoxLayout(size_hint=(1, None), height=60, spacing=10)
+        # Header
+        self.header = MDBoxLayout(
+            size_hint=(1, None),
+            height=dp(60),
+            padding=[10, 0],
+            spacing=10,
+            md_bg_color=(0.15, 0.15, 0.15, 1)
+        )
         self.main_layout.add_widget(self.header)
         
-        # Botón de recargar
-        self.refresh_button = Button(
-            text='🔄 Cargar Productos',
-            size_hint=(1, None),
-            height=50
-        )
-        self.refresh_button.bind(on_press=self.load_products)
-        self.main_layout.add_widget(self.refresh_button)
+        # Botón de recargar (temporal, luego será parte del header o refresh layout)
+        # Por ahora lo ponemos como un botón flotante o en el header si cabe
         
         # Área de productos (ScrollView)
-        self.scroll_view = ScrollView(size_hint=(1, 1))
-        self.product_list = GridLayout(
+        self.scroll_view = MDScrollView(size_hint=(1, 1))
+        self.product_list = MDGridLayout(
             cols=1,
-            spacing=10,
+            spacing=dp(15),
             size_hint_y=None,
-            padding=5
+            padding=dp(10),
+            adaptive_height=True
         )
-        self.product_list.bind(minimum_height=self.product_list.setter('height'))
         self.scroll_view.add_widget(self.product_list)
         self.main_layout.add_widget(self.scroll_view)
         
@@ -53,115 +58,122 @@ class ProductsScreen(Screen):
         """Actualizar el header según el estado de autenticación."""
         self.header.clear_widgets()
         
-        title = Label(
-            text='Productos',
-            font_size='20sp',
+        # Título
+        title = MDLabel(
+            text='PRODUCTOS',
+            font_style='H6',
+            theme_text_color='Custom',
+            text_color=(1, 0, 0, 1),
             bold=True,
-            size_hint=(0.4, 1)
+            size_hint_x=0.4,
+            pos_hint={'center_y': 0.5}
         )
         self.header.add_widget(title)
         
         # Botones de navegación
-        nav_buttons = BoxLayout(size_hint=(0.6, 1), spacing=5)
+        nav_buttons = MDBoxLayout(
+            orientation='horizontal',
+            spacing=5,
+            adaptive_width=True,
+            pos_hint={'center_y': 0.5}
+        )
+        
+        # Botón Recargar
+        refresh_btn = MDIconButton(
+            icon="refresh",
+            theme_text_color="Custom",
+            text_color=(1, 1, 1, 1),
+            on_press=self.load_products
+        )
+        nav_buttons.add_widget(refresh_btn)
         
         if self.auth_manager.is_authenticated():
             # Botón de carrito
-            cart_btn = Button(text='🛒', size_hint=(0.2, 1))
-            cart_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'cart'))
+            cart_btn = MDIconButton(
+                icon="cart",
+                theme_text_color="Custom",
+                text_color=(1, 1, 1, 1),
+                on_press=lambda x: setattr(self.manager, 'current', 'cart')
+            )
             nav_buttons.add_widget(cart_btn)
             
-            # Nombre de usuario
-            user_label = Label(
-                text=f'👤 {self.auth_manager.get_username()}',
-                size_hint=(0.5, 1)
+            # Nombre de usuario (corto)
+            username = self.auth_manager.get_username()
+            user_label = MDLabel(
+                text=username[:10],
+                theme_text_color='Secondary',
+                size_hint_x=None,
+                width=dp(80),
+                halign='right',
+                pos_hint={'center_y': 0.5}
             )
             nav_buttons.add_widget(user_label)
             
             # Botón de logout
-            logout_btn = Button(
-                text='Salir',
-                size_hint=(0.3, 1),
-                background_color=(1, 0.3, 0.3, 1)
+            logout_btn = MDIconButton(
+                icon="logout",
+                theme_text_color="Custom",
+                text_color=(1, 0.3, 0.3, 1),
+                on_press=self.do_logout
             )
-            logout_btn.bind(on_press=self.do_logout)
             nav_buttons.add_widget(logout_btn)
         else:
-            login_btn = Button(text='Iniciar Sesión')
-            login_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'login'))
+            login_btn = MDRectangleFlatButton(
+                text='LOGIN',
+                theme_text_color="Custom",
+                text_color=(1, 1, 1, 1),
+                line_color=(1, 0, 0, 1),
+                on_press=lambda x: setattr(self.manager, 'current', 'login')
+            )
             nav_buttons.add_widget(login_btn)
         
         self.header.add_widget(nav_buttons)
     
     def do_logout(self, instance):
         """Mostrar confirmación antes de cerrar sesión."""
-        # Crear contenido del popup
-        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
-        
-        # Mensaje
-        message = Label(
-            text='¿Estás seguro que deseas\ncerrar sesión?',
-            size_hint=(1, 0.6)
-        )
-        content.add_widget(message)
-        
-        # Botones
-        buttons = BoxLayout(size_hint=(1, 0.4), spacing=10)
-        
-        # Botón Cancelar
-        cancel_btn = Button(
-            text='Cancelar',
-            background_color=(0.5, 0.5, 0.5, 1)
-        )
-        buttons.add_widget(cancel_btn)
-        
-        # Botón Salir
-        logout_btn = Button(
-            text='Salir',
-            background_color=(1, 0.3, 0.3, 1)
-        )
-        buttons.add_widget(logout_btn)
-        
-        content.add_widget(buttons)
-        
-        # Crear popup
-        popup = Popup(
-            title='Confirmar cierre de sesión',
-            content=content,
-            size_hint=(0.7, 0.4),
-            auto_dismiss=False
-        )
-        
-        # Vincular acciones
-        cancel_btn.bind(on_press=popup.dismiss)
-        logout_btn.bind(on_press=lambda x: self._confirm_logout(popup))
-        
-        popup.open()
+        if not self.dialog:
+            self.dialog = MDDialog(
+                title="Cerrar Sesión",
+                text="¿Estás seguro que deseas salir?",
+                buttons=[
+                    MDRectangleFlatButton(
+                        text="CANCELAR",
+                        theme_text_color="Custom",
+                        text_color=(1, 1, 1, 1),
+                        on_release=lambda x: self.dialog.dismiss()
+                    ),
+                    MDRaisedButton(
+                        text="SALIR",
+                        md_bg_color=(1, 0, 0, 1),
+                        on_release=lambda x: self._confirm_logout()
+                    ),
+                ],
+            )
+        self.dialog.open()
     
-    def _confirm_logout(self, popup):
+    def _confirm_logout(self):
         """Ejecutar logout después de confirmación."""
-        popup.dismiss()
-        
-        # Limpiar tokens
+        self.dialog.dismiss()
         self.auth_manager.clear_tokens()
-        
-        # Actualizar header
         self._update_header()
-        
-        # Navegar a login
         self.manager.current = 'login'
     
     def on_pre_enter(self):
         """Llamado antes de entrar a la pantalla."""
-        # Actualizar header según estado de autenticación
         self._update_header()
-        # Cargar productos automáticamente
         self.load_products()
     
     def load_products(self, instance=None):
         """Cargar productos desde la API."""
-        self.refresh_button.text = 'Cargando...'
-        self.refresh_button.disabled = True
         self.product_list.clear_widgets()
+        
+        # Spinner de carga
+        loading = MDLabel(
+            text="Cargando productos...",
+            halign="center",
+            theme_text_color="Secondary"
+        )
+        self.product_list.add_widget(loading)
         
         threading.Thread(target=self._fetch_products).start()
     
@@ -172,28 +184,25 @@ class ProductsScreen(Screen):
     
     def _display_products(self, result):
         """Mostrar productos en la UI."""
-        self.refresh_button.text = '🔄 Recargar'
-        self.refresh_button.disabled = False
+        self.product_list.clear_widgets()
         
         if 'error' in result:
-            error_label = Label(
-                text=f"❌ {result['error']}",
-                size_hint_y=None,
-                height=100,
-                color=(1, 0, 0, 1)
+            error_label = MDLabel(
+                text=f"Error: {result['error']}",
+                halign="center",
+                theme_text_color="Error"
             )
             self.product_list.add_widget(error_label)
             return
         
-        # result es una lista de productos
         if isinstance(result, list):
             self.products = result
             
             if not self.products:
-                no_products = Label(
+                no_products = MDLabel(
                     text='No hay productos disponibles',
-                    size_hint_y=None,
-                    height=100
+                    halign="center",
+                    theme_text_color="Secondary"
                 )
                 self.product_list.add_widget(no_products)
                 return
@@ -202,74 +211,89 @@ class ProductsScreen(Screen):
                 card = self._create_product_card(product)
                 self.product_list.add_widget(card)
         else:
-            error_label = Label(
+            error_label = MDLabel(
                 text='Error al cargar productos',
-                size_hint_y=None,
-                height=100,
-                color=(1, 0, 0, 1)
+                halign="center",
+                theme_text_color="Error"
             )
             self.product_list.add_widget(error_label)
     
     def _create_product_card(self, product):
         """Crear card para un producto."""
-        card = BoxLayout(
+        card = MDCard(
             orientation='vertical',
-            size_hint_y=None,
-            height=150,
-            padding=10
+            size_hint=(1, None),
+            height=dp(200),
+            padding=dp(10),
+            spacing=dp(5),
+            radius=[15],
+            elevation=4,
+            md_bg_color=(0.2, 0.2, 0.2, 1)
         )
         
         # Título
-        title = Label(
+        title = MDLabel(
             text=product.get('title', 'Sin título'),
             bold=True,
-            size_hint_y=0.4,
-            font_size='16sp'
+            theme_text_color='Custom',
+            text_color=(1, 1, 1, 1),
+            font_style='H6',
+            size_hint_y=None,
+            height=dp(30)
         )
         card.add_widget(title)
         
         # Descripción
-        description = Label(
-            text=product.get('description', '')[:100] + '...' if len(product.get('description', '')) > 100 else product.get('description', ''),
-            size_hint_y=0.3,
-            font_size='12sp',
-            color=(0.7, 0.7, 0.7, 1)
+        desc_text = product.get('description', '')
+        if len(desc_text) > 80:
+            desc_text = desc_text[:80] + '...'
+            
+        description = MDLabel(
+            text=desc_text,
+            theme_text_color='Secondary',
+            font_style='Body2',
+            size_hint_y=None,
+            height=dp(40)
         )
         card.add_widget(description)
         
+        # Espacio flexible
+        card.add_widget(MDLabel(size_hint_y=1))
+        
         # Precio y botón
-        bottom = BoxLayout(size_hint_y=0.3, spacing=10)
+        bottom = MDBoxLayout(
+            size_hint_y=None,
+            height=dp(50),
+            spacing=dp(10)
+        )
         
         price_text = f"${product.get('price', 0)}"
         if product.get('discount_price'):
-            price_text = f"${product.get('discount_price')} (antes: ${product.get('price')})"
+            price_text = f"${product.get('discount_price')}"
         
-        price = Label(
+        price = MDLabel(
             text=price_text,
-            color=(0, 1, 0, 1),
+            theme_text_color='Custom',
+            text_color=(0, 1, 0, 1), # Verde para precio
             bold=True,
-            size_hint=(0.5, 1)
+            font_style='H5',
+            halign='left'
         )
         bottom.add_widget(price)
         
-        view_btn = Button(
-            text='Ver Detalle',
-            size_hint=(0.5, 1)
+        view_btn = MDRaisedButton(
+            text='VER DETALLE',
+            md_bg_color=(0.8, 0, 0, 1), # Rojo
+            on_press=lambda x: self.view_product_detail(product)
         )
-        view_btn.bind(on_press=lambda x: self.view_product_detail(product))
         bottom.add_widget(view_btn)
         
         card.add_widget(bottom)
-        
-        # Línea separadora
-        separator = Label(size_hint_y=None, height=2)
-        card.add_widget(separator)
         
         return card
     
     def view_product_detail(self, product):
         """Navegar al detalle del producto."""
-        # Pasar datos del producto a la pantalla de detalle
         detail_screen = self.manager.get_screen('product_detail')
         detail_screen.set_product(product)
         self.manager.current = 'product_detail'

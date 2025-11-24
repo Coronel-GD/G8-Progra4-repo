@@ -1,16 +1,17 @@
-"""Pantalla de carrito de compras."""
-from kivy.uix.screenmanager import Screen
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.button import Button
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.gridlayout import GridLayout
+"""Pantalla de carrito de compras con estilo Kickboxing."""
+from kivymd.uix.screen import MDScreen
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.label import MDLabel
+from kivymd.uix.button import MDRaisedButton, MDIconButton, MDRectangleFlatButton
+from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.gridlayout import MDGridLayout
+from kivymd.uix.card import MDCard
 from kivy.clock import Clock
+from kivy.metrics import dp
 import threading
 import webbrowser
 
-
-class CartScreen(Screen):
+class CartScreen(MDScreen):
     """Pantalla que muestra el carrito de compras."""
     
     def __init__(self, api_service, auth_manager, **kwargs):
@@ -20,75 +21,94 @@ class CartScreen(Screen):
         self.cart_data = None
         
         # Layout principal
-        main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        self.main_layout = MDBoxLayout(
+            orientation='vertical',
+            md_bg_color=(0.1, 0.1, 0.1, 1)
+        )
         
         # Header
-        header = BoxLayout(size_hint=(1, None), height=60, spacing=10)
+        header = MDBoxLayout(
+            size_hint=(1, None),
+            height=dp(60),
+            padding=[10, 0],
+            spacing=10,
+            md_bg_color=(0.15, 0.15, 0.15, 1)
+        )
         
-        back_btn = Button(text='← Volver', size_hint=(0.3, 1))
-        back_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'products'))
+        back_btn = MDIconButton(
+            icon="arrow-left",
+            theme_text_color="Custom",
+            text_color=(1, 1, 1, 1),
+            on_press=lambda x: setattr(self.manager, 'current', 'products')
+        )
         header.add_widget(back_btn)
         
-        title = Label(
-            text='🛒 Mi Carrito',
-            font_size='20sp',
-            bold=True,
-            size_hint=(0.7, 1)
+        title = MDLabel(
+            text='MI CARRITO',
+            font_style='H6',
+            theme_text_color='Custom',
+            text_color=(1, 1, 1, 1),
+            bold=True
         )
         header.add_widget(title)
         
-        main_layout.add_widget(header)
+        self.main_layout.add_widget(header)
         
-        # Botón recargar
-        self.refresh_button = Button(
-            text='🔄 Actualizar Carrito',
-            size_hint=(1, None),
-            height=50
-        )
-        self.refresh_button.bind(on_press=self.load_cart)
-        main_layout.add_widget(self.refresh_button)
-        
-        # Área de items (ScrollView)
-        self.scroll_view = ScrollView(size_hint=(1, 0.7))
-        self.cart_list = GridLayout(
+        # ScrollView para items
+        self.scroll_view = MDScrollView(size_hint=(1, 1))
+        self.cart_list = MDGridLayout(
             cols=1,
-            spacing=10,
+            spacing=dp(10),
             size_hint_y=None,
-            padding=5
+            padding=dp(10),
+            adaptive_height=True
         )
-        self.cart_list.bind(minimum_height=self.cart_list.setter('height'))
         self.scroll_view.add_widget(self.cart_list)
-        main_layout.add_widget(self.scroll_view)
+        self.main_layout.add_widget(self.scroll_view)
         
-        # Total y checkout
-        self.total_label = Label(
-            text='Total: $0',
-            font_size='18sp',
-            bold=True,
+        # Footer con total y checkout
+        self.footer = MDBoxLayout(
+            orientation='vertical',
             size_hint=(1, None),
-            height=40
+            height=dp(120),
+            padding=dp(10),
+            spacing=dp(10),
+            md_bg_color=(0.15, 0.15, 0.15, 1)
         )
-        main_layout.add_widget(self.total_label)
         
-        self.checkout_button = Button(
-            text='💳 Pagar con MercadoPago',
-            size_hint=(1, None),
-            height=60,
-            background_color=(0.2, 0.8, 0.2, 1),
+        self.total_label = MDLabel(
+            text='Total: $0',
+            font_style='H5',
+            bold=True,
+            theme_text_color='Custom',
+            text_color=(0, 1, 0, 1),
+            halign='right'
+        )
+        self.footer.add_widget(self.total_label)
+        
+        self.checkout_button = MDRaisedButton(
+            text='PAGAR CON MERCADOPAGO',
+            size_hint_x=1,
+            height=dp(50),
+            md_bg_color=(0, 0.7, 0.9, 1), # Azul MercadoPago
             disabled=True
         )
         self.checkout_button.bind(on_press=self.process_checkout)
-        main_layout.add_widget(self.checkout_button)
+        self.footer.add_widget(self.checkout_button)
+        
+        self.main_layout.add_widget(self.footer)
         
         # Mensaje de status
-        self.status_label = Label(
+        self.status_label = MDLabel(
             text='',
-            size_hint=(1, None),
-            height=40
+            halign='center',
+            theme_text_color='Error',
+            size_hint_y=None,
+            height=dp(30)
         )
-        main_layout.add_widget(self.status_label)
+        self.main_layout.add_widget(self.status_label)
         
-        self.add_widget(main_layout)
+        self.add_widget(self.main_layout)
     
     def on_pre_enter(self):
         """Llamado antes de entrar a la pantalla."""
@@ -100,10 +120,15 @@ class CartScreen(Screen):
     
     def load_cart(self, instance=None):
         """Cargar carrito desde la API."""
-        self.refresh_button.text = 'Cargando...'
-        self.refresh_button.disabled = True
         self.cart_list.clear_widgets()
         self.checkout_button.disabled = True
+        
+        loading = MDLabel(
+            text="Cargando carrito...",
+            halign="center",
+            theme_text_color="Secondary"
+        )
+        self.cart_list.add_widget(loading)
         
         threading.Thread(target=self._fetch_cart).start()
     
@@ -114,25 +139,22 @@ class CartScreen(Screen):
     
     def _display_cart(self, result):
         """Mostrar carrito en la UI."""
-        self.refresh_button.text = '🔄 Actualizar'
-        self.refresh_button.disabled = False
+        self.cart_list.clear_widgets()
         
         if 'error' in result:
-            error_label = Label(
-                text=f"❌ {result['error']}",
-                size_hint_y=None,
-                height=100,
-                color=(1, 0, 0, 1)
+            error_label = MDLabel(
+                text=f"Error: {result['error']}",
+                halign="center",
+                theme_text_color="Error"
             )
             self.cart_list.add_widget(error_label)
             return
         
-        # Si el carrito está vacío
         if result is None or not result.get('order_items'):
-            empty_label = Label(
+            empty_label = MDLabel(
                 text='Tu carrito está vacío\n\n¡Agrega algunos productos!',
-                size_hint_y=None,
-                height=150
+                halign="center",
+                theme_text_color="Secondary"
             )
             self.cart_list.add_widget(empty_label)
             self.total_label.text = 'Total: $0'
@@ -140,26 +162,27 @@ class CartScreen(Screen):
         
         self.cart_data = result
         
-        # Mostrar items
         for item_data in result.get('order_items', []):
             card = self._create_cart_item_card(item_data)
             self.cart_list.add_widget(card)
         
-        # Actualizar total
         total = result.get('total', 0)
         self.total_label.text = f'Total: ${total}'
         
-        # Habilitar checkout si hay items
         if result.get('order_items'):
             self.checkout_button.disabled = False
     
     def _create_cart_item_card(self, item_data):
         """Crear card para un item del carrito."""
-        card = BoxLayout(
+        card = MDCard(
             orientation='vertical',
-            size_hint_y=None,
-            height=150,
-            padding=10
+            size_hint=(1, None),
+            height=dp(160),
+            padding=dp(10),
+            spacing=dp(5),
+            radius=[10],
+            elevation=2,
+            md_bg_color=(0.2, 0.2, 0.2, 1)
         )
         
         item = item_data.get('item', {})
@@ -168,71 +191,80 @@ class CartScreen(Screen):
         slug = item.get('slug')
         
         # Título
-        title = Label(
+        title = MDLabel(
             text=item.get('title', 'Sin título'),
             bold=True,
-            size_hint_y=0.3,
-            font_size='14sp'
+            theme_text_color='Custom',
+            text_color=(1, 1, 1, 1),
+            size_hint_y=None,
+            height=dp(30)
         )
         card.add_widget(title)
         
-        # Cantidad y precio
-        info = BoxLayout(size_hint_y=0.3)
+        # Info
+        info_layout = MDBoxLayout(size_hint_y=None, height=dp(30))
         
-        quantity_label = Label(
-            text=f'Cantidad: {quantity}',
-            size_hint=(0.5, 1)
+        qty_label = MDLabel(
+            text=f'Cant: {quantity}',
+            theme_text_color='Secondary'
         )
-        info.add_widget(quantity_label)
+        info_layout.add_widget(qty_label)
         
-        price_label = Label(
+        price_label = MDLabel(
             text=f'${final_price}',
+            theme_text_color='Custom',
+            text_color=(0, 1, 0, 1),
             bold=True,
-            color=(0, 1, 0, 1),
-            size_hint=(0.5, 1)
+            halign='right'
         )
-        info.add_widget(price_label)
+        info_layout.add_widget(price_label)
         
-        card.add_widget(info)
-        
-        # Precio unitario
-        unit_price = Label(
-            text=f'Precio unit: ${item.get("price", 0)}',
-            size_hint_y=0.2,
-            font_size='12sp',
-            color=(0.7, 0.7, 0.7, 1)
-        )
-        card.add_widget(unit_price)
+        card.add_widget(info_layout)
         
         # Botones de acción
-        buttons = BoxLayout(size_hint_y=0.2, spacing=5)
-        
-        # Botón -1
-        minus_btn = Button(text='-1', size_hint=(0.25, 1))
-        minus_btn.bind(on_press=lambda x: self.remove_single_item(slug))
-        buttons.add_widget(minus_btn)
-        
-        # Botón +1
-        plus_btn = Button(text='+1', size_hint=(0.25, 1))
-        plus_btn.bind(on_press=lambda x: self.add_item(slug))
-        buttons.add_widget(plus_btn)
-        
-        # Botón Eliminar
-        delete_btn = Button(
-            text='Eliminar',
-            size_hint=(0.5, 1),
-            background_color=(1, 0.3, 0.3, 1)
+        actions = MDBoxLayout(
+            size_hint_y=None,
+            height=dp(50),
+            spacing=dp(10)
         )
-        delete_btn.bind(on_press=lambda x: self.remove_item(slug))
-        buttons.add_widget(delete_btn)
         
-        card.add_widget(buttons)
+        # -1
+        minus_btn = MDIconButton(
+            icon="minus",
+            theme_text_color="Custom",
+            text_color=(1, 1, 1, 1),
+            on_press=lambda x: self.remove_single_item(slug)
+        )
+        actions.add_widget(minus_btn)
+        
+        # +1
+        plus_btn = MDIconButton(
+            icon="plus",
+            theme_text_color="Custom",
+            text_color=(1, 1, 1, 1),
+            on_press=lambda x: self.add_item(slug)
+        )
+        actions.add_widget(plus_btn)
+        
+        # Espaciador
+        actions.add_widget(MDLabel(size_hint_x=1))
+        
+        # Eliminar
+        delete_btn = MDIconButton(
+            icon="trash-can",
+            theme_text_color="Custom",
+            text_color=(1, 0.3, 0.3, 1),
+            on_press=lambda x: self.remove_item(slug)
+        )
+        actions.add_widget(delete_btn)
+        
+        card.add_widget(actions)
         
         return card
     
     def add_item(self, slug):
-        """Agregar una unidad del producto."""
-        self.status_label.text = 'Agregando...'
+        """Agregar una unidad."""
+        self.status_label.text = 'Actualizando...'
         threading.Thread(target=self._add_item_thread, args=(slug,)).start()
     
     def _add_item_thread(self, slug):
@@ -241,8 +273,8 @@ class CartScreen(Screen):
         Clock.schedule_once(lambda dt: self._handle_modify_result(result))
     
     def remove_single_item(self, slug):
-        """Quitar una unidad del producto."""
-        self.status_label.text = 'Quitando...'
+        """Quitar una unidad."""
+        self.status_label.text = 'Actualizando...'
         threading.Thread(target=self._remove_single_thread, args=(slug,)).start()
     
     def _remove_single_thread(self, slug):
@@ -251,7 +283,7 @@ class CartScreen(Screen):
         Clock.schedule_once(lambda dt: self._handle_modify_result(result))
     
     def remove_item(self, slug):
-        """Eliminar completamente el producto."""
+        """Eliminar item."""
         self.status_label.text = 'Eliminando...'
         threading.Thread(target=self._remove_item_thread, args=(slug,)).start()
     
@@ -263,18 +295,18 @@ class CartScreen(Screen):
     def _handle_modify_result(self, result):
         """Manejar resultado de modificar carrito."""
         if 'error' in result:
-            self.status_label.text = f"❌ {result['error']}"
-            self.status_label.color = (1, 0, 0, 1)
+            self.status_label.text = f"Error: {result['error']}"
+            self.status_label.theme_text_color = 'Error'
         else:
-            self.status_label.text = '✅ Carrito actualizado'
-            self.status_label.color = (0, 1, 0, 1)
-            # Recargar el carrito automáticamente
+            self.status_label.text = 'Carrito actualizado'
+            self.status_label.theme_text_color = 'Custom'
+            self.status_label.text_color = (0, 1, 0, 1)
             Clock.schedule_once(lambda dt: self.load_cart(), 0.5)
     
     def process_checkout(self, instance):
         """Procesar el checkout."""
         self.status_label.text = 'Procesando checkout...'
-        self.status_label.color = (0, 0, 1, 1)
+        self.status_label.theme_text_color = 'Primary'
         self.checkout_button.disabled = True
         
         threading.Thread(target=self._checkout_thread).start()
@@ -289,19 +321,17 @@ class CartScreen(Screen):
         self.checkout_button.disabled = False
         
         if 'error' in result:
-            self.status_label.text = f"❌ {result['error']}"
-            self.status_label.color = (1, 0, 0, 1)
+            self.status_label.text = f"Error: {result['error']}"
+            self.status_label.theme_text_color = 'Error'
         elif 'sandbox_init_point' in result or 'init_point' in result:
-            # Obtener URL de pago
             payment_url = result.get('sandbox_init_point') or result.get('init_point')
             
-            self.status_label.text = '✅ Abriendo MercadoPago...'
-            self.status_label.color = (0, 1, 0, 1)
+            self.status_label.text = 'Abriendo MercadoPago...'
+            self.status_label.theme_text_color = 'Custom'
+            self.status_label.text_color = (0, 1, 0, 1)
             
-            # Abrir en el navegador
             webbrowser.open(payment_url)
             
-            # Actualizar mensaje después de 2 segundos
             Clock.schedule_once(
                 lambda dt: setattr(self.status_label, 'text', 
                                  'Completa el pago en tu navegador'),
@@ -309,4 +339,4 @@ class CartScreen(Screen):
             )
         else:
             self.status_label.text = 'Error al crear el pago'
-            self.status_label.color = (1, 0, 0, 1)
+            self.status_label.theme_text_color = 'Error'
