@@ -1,11 +1,11 @@
 from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager
-from mobile.api.api_service import APIService
-from mobile.utils.auth_manager import AuthManager
-from mobile.screens.login_screen import LoginScreen
-from mobile.screens.products_screen import ProductsScreen
-from mobile.screens.product_detail_screen import ProductDetailScreen
-from mobile.screens.cart_screen import CartScreen
+from api.api_service import APIService
+from utils.auth_manager import AuthManager
+from screens.login_screen import LoginScreen
+from screens.products_screen import ProductsScreen
+from screens.product_detail_screen import ProductDetailScreen
+from screens.cart_screen import CartScreen
 
 class ECommerceApp(MDApp):
     def build(self):
