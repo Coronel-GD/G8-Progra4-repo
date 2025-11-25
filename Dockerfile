@@ -27,14 +27,12 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 # Copy project
 COPY . /app/
 
-# Make build script executable
-RUN chmod +x build.sh
-
-# Run build script
-RUN ./build.sh
+# Copy and make entrypoint script executable
+COPY entrypoint.sh /app/
+RUN chmod +x /app/entrypoint.sh
 
 # Expose port
 EXPOSE 10000
 
-# Start command
-CMD ["gunicorn", "djecommerce.wsgi:application", "--bind", "0.0.0.0:10000"]
+# Use entrypoint script
+ENTRYPOINT ["/app/entrypoint.sh"]
