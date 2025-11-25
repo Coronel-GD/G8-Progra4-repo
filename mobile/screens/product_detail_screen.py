@@ -7,6 +7,8 @@ from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.card import MDCard
 from kivy.clock import Clock
 from kivy.metrics import dp
+from kivy.uix.image import AsyncImage
+from kivy.uix.video import Video
 import threading
 
 class ProductDetailScreen(MDScreen):
@@ -100,6 +102,51 @@ class ProductDetailScreen(MDScreen):
             adaptive_height=True
         )
         self.content_layout.add_widget(title)
+        
+        # Imagen o Video del producto
+        media_url = p.get('video_url') or p.get('image_url')
+        if media_url:
+            # Construir URL completa si es relativa
+            if media_url.startswith('/'):
+                media_url = f"http://127.0.0.1:8000{media_url}"
+            
+            if p.get('video_url'):
+                # Si hay video, usar Video widget con loop
+                try:
+                    video = Video(
+                        source=media_url,
+                        state='play',
+                        options={'eos': 'loop'},  # Loop infinito
+                        size_hint=(1, None),
+                        height=dp(250),
+                        allow_stretch=True
+                    )
+                    self.content_layout.add_widget(video)
+                except Exception as e:
+                    # Si falla el video, mostrar imagen de fallback
+                    if p.get('image_url'):
+                        fallback_url = p.get('image_url')
+                        if fallback_url.startswith('/'):
+                            fallback_url = f"http://127.0.0.1:8000{fallback_url}"
+                        image = AsyncImage(
+                            source=fallback_url,
+                            size_hint=(1, None),
+                            height=dp(250),
+                            allow_stretch=True
+                        )
+                        self.content_layout.add_widget(image)
+            else:
+                # Solo imagen
+                image = AsyncImage(
+                    source=media_url,
+                    size_hint=(1, None),
+                    height=dp(250),
+                    allow_stretch=True
+                )
+                self.content_layout.add_widget(image)
+        
+        # Espaciador
+        self.content_layout.add_widget(MDLabel(size_hint_y=None, height=dp(10)))
         
         # Categoría y etiquetas
         if p.get('category_display') or p.get('label_display'):
@@ -214,30 +261,45 @@ class ProductDetailScreen(MDScreen):
             login_btn.bind(on_press=lambda x: setattr(self.manager, 'current', 'login'))
             self.content_layout.add_widget(login_btn)
     
+    
     def add_to_cart(self, instance):
         """Agregar producto al carrito."""
         if not self.current_product:
+            self.status_label.text = 'Error: No hay producto seleccionado'
+            self.status_label.theme_text_color = 'Error'
             return
         
         slug = self.current_product.get('slug')
         if not slug:
             self.status_label.text = 'Error: producto sin slug'
+            self.status_label.theme_text_color = 'Error'
             return
         
-        self.status_label.text = 'Agregando al carrito...'
-        self.status_label.theme_text_color = 'Primary'
-        self.add_to_cart_btn.disabled = True
-        
-        threading.Thread(target=self._add_to_cart_thread, args=(slug,)).start()
+        # Verificar que el botón existe antes de deshabilitarlo
+        if hasattr(self, 'add_to_cart_btn'):
+            self.status_label.text = 'Agregando al carrito...'
+            self.status_label.theme_text_color = 'Primary'
+            self.add_to_cart_btn.disabled = True
+            
+            threading.Thread(target=self._add_to_cart_thread, args=(slug,), daemon=True).start()
+        else:
+            self.status_label.text = 'Error: Botón no disponible'
+            self.status_label.theme_text_color = 'Error'
     
     def _add_to_cart_thread(self, slug):
         """Thread para agregar al carrito."""
-        result = self.api_service.add_to_cart(slug)
-        Clock.schedule_once(lambda dt: self._handle_cart_result(result))
+        try:
+            result = self.api_service.add_to_cart(slug)
+            Clock.schedule_once(lambda dt: self._handle_cart_result(result))
+        except Exception as e:
+            error_result = {"error": f"Error de conexión: {str(e)}"}
+            Clock.schedule_once(lambda dt: self._handle_cart_result(error_result))
     
     def _handle_cart_result(self, result):
         """Manejar resultado de agregar al carrito."""
-        self.add_to_cart_btn.disabled = False
+        # Asegurar que el botón se reactive siempre
+        if hasattr(self, 'add_to_cart_btn'):
+            self.add_to_cart_btn.disabled = False
         
         if 'error' in result:
             self.status_label.text = f"Error: {result['error']}"
@@ -247,6 +309,7 @@ class ProductDetailScreen(MDScreen):
             self.status_label.theme_text_color = 'Custom'
             self.status_label.text_color = (0, 1, 0, 1)
         else:
-            self.status_label.text = 'Producto agregado'
+            self.status_label.text = 'Producto agregado al carrito ✓'
             self.status_label.theme_text_color = 'Custom'
             self.status_label.text_color = (0, 1, 0, 1)
+

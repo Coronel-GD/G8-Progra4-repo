@@ -9,6 +9,8 @@ from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.dialog import MDDialog
 from kivy.clock import Clock
 from kivy.metrics import dp
+from kivy.uix.image import AsyncImage
+from kivy.uix.video import Video
 import threading
 
 class ProductsScreen(MDScreen):
@@ -223,13 +225,55 @@ class ProductsScreen(MDScreen):
         card = MDCard(
             orientation='vertical',
             size_hint=(1, None),
-            height=dp(200),
+            height=dp(320),  # Aumentado para incluir imagen
             padding=dp(10),
             spacing=dp(5),
             radius=[15],
             elevation=4,
             md_bg_color=(0.2, 0.2, 0.2, 1)
         )
+        
+        # Imagen o Video del producto
+        media_url = product.get('video_url') or product.get('preview_image_url')
+        if media_url:
+            # Construir URL completa si es relativa
+            if media_url.startswith('/'):
+                media_url = f"http://127.0.0.1:8000{media_url}"
+            
+            if product.get('video_url'):
+                # Si hay video, usar Video widget con loop
+                try:
+                    video = Video(
+                        source=media_url,
+                        state='play',
+                        options={'eos': 'loop'},  # Loop infinito
+                        size_hint=(1, None),
+                        height=dp(150),
+                        allow_stretch=True
+                    )
+                    card.add_widget(video)
+                except Exception as e:
+                    # Si falla el video, mostrar imagen de fallback
+                    if product.get('preview_image_url'):
+                        fallback_url = product.get('preview_image_url')
+                        if fallback_url.startswith('/'):
+                            fallback_url = f"http://127.0.0.1:8000{fallback_url}"
+                        image = AsyncImage(
+                            source=fallback_url,
+                            size_hint=(1, None),
+                            height=dp(150),
+                            allow_stretch=True
+                        )
+                        card.add_widget(image)
+            else:
+                # Solo imagen
+                image = AsyncImage(
+                    source=media_url,
+                    size_hint=(1, None),
+                    height=dp(150),
+                    allow_stretch=True
+                )
+                card.add_widget(image)
         
         # Título
         title = MDLabel(
@@ -245,8 +289,8 @@ class ProductsScreen(MDScreen):
         
         # Descripción
         desc_text = product.get('description', '')
-        if len(desc_text) > 80:
-            desc_text = desc_text[:80] + '...'
+        if len(desc_text) > 60:
+            desc_text = desc_text[:60] + '...'
             
         description = MDLabel(
             text=desc_text,

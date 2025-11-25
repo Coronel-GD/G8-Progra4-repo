@@ -47,6 +47,8 @@ class ItemSerializer(serializers.ModelSerializer):
     category_display = serializers.CharField(source='get_category_display', read_only=True)
     label_display = serializers.CharField(source='get_label_display', read_only=True)
     image_url = serializers.SerializerMethodField()
+    preview_image_url = serializers.SerializerMethodField()
+    video_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
@@ -62,11 +64,27 @@ class ItemSerializer(serializers.ModelSerializer):
             'slug',
             'description',
             'image_url',
+            'preview_image_url',
+            'video_url',
         )
 
     def get_image_url(self, obj):
         if obj.image:
             return obj.image.url
+        return None
+    
+    def get_preview_image_url(self, obj):
+        """Retorna la URL de la imagen de preview, o la imagen principal si no existe."""
+        if obj.preview_image:
+            return obj.preview_image.url
+        elif obj.image:
+            return obj.image.url
+        return None
+    
+    def get_video_url(self, obj):
+        """Retorna la URL del video del producto."""
+        if obj.video:
+            return obj.video.url
         return None
 
 class OrderItemSerializer(serializers.ModelSerializer):
