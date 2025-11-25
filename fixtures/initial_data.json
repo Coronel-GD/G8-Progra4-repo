@@ -1,0 +1,210 @@
+[
+{
+  "model": "core.item",
+  "pk": 1,
+  "fields": {
+    "title": "Guantes Proyect Negro",
+    "price": 96000.0,
+    "discount_price": 80000.0,
+    "category": 1,
+    "label": 1,
+    "slug": "guantes-proyect",
+    "description": "guantes para Boxeo , kick Boxing , muai thai",
+    "image": "products/guantes_proyect_fGXMY6z.jpg",
+    "preview_image": "",
+    "video": "",
+    "currency": "ARS"
+  }
+},
+{
+  "model": "core.item",
+  "pk": 2,
+  "fields": {
+    "title": "Tibiales Low kick",
+    "price": 120000.0,
+    "discount_price": 100000.0,
+    "category": 2,
+    "label": 2,
+    "slug": "protector-de-tibia-low-kick",
+    "description": "Tibiales negros marca Grand marc para Kick boxing y muai thai",
+    "image": "products/tibiales.webp",
+    "preview_image": "",
+    "video": "",
+    "currency": "ARS"
+  }
+},
+{
+  "model": "core.item",
+  "pk": 3,
+  "fields": {
+    "title": "Vendas Everlast Negro",
+    "price": 30000.0,
+    "discount_price": 25000.0,
+    "category": 4,
+    "label": 2,
+    "slug": "Vendas-Everlast",
+    "description": "Vendas marca everlast Color negro para boxeo, kick boxing , muai thai",
+    "image": "products/Vendas_Everlast.webp",
+    "preview_image": "",
+    "video": "",
+    "currency": "ARS"
+  }
+},
+{
+  "model": "core.item",
+  "pk": 4,
+  "fields": {
+    "title": "cabezal proyect negro",
+    "price": 60000.0,
+    "discount_price": 55000.0,
+    "category": 3,
+    "label": 2,
+    "slug": "cabezal-proyect",
+    "description": "Cabezal de la marca proyect color negro para boxeo, kick boxing, muai thai",
+    "image": "products/proyec-2-fbfe3d3891e7660d0217513423980607-240-0.webp",
+    "preview_image": "",
+    "video": "",
+    "currency": "ARS"
+  }
+},
+{
+  "model": "core.item",
+  "pk": 5,
+  "fields": {
+    "title": "protector Bucal Everlast",
+    "price": 45000.0,
+    "discount_price": 40000.0,
+    "category": 5,
+    "label": 3,
+    "slug": "protector-bucal-everlast-negro-rojo",
+    "description": "protector bucal marca everlast para boxeo, kick boxing, muai thai , mma",
+    "image": "products/protector-bucal-everlast-double-evershield.jpg",
+    "preview_image": "",
+    "video": "",
+    "currency": "ARS"
+  }
+},
+{
+  "model": "core.item",
+  "pk": 6,
+  "fields": {
+    "title": "Remera Perico Team",
+    "price": 30000.0,
+    "discount_price": 20000.0,
+    "category": 6,
+    "label": 4,
+    "slug": "Remera-Perico_Team",
+    "description": "",
+    "image": "products/Gemini_Generated_Image_oh49ypoh49ypoh49.png",
+    "preview_image": "products/previews/Gemini_Generated_Image_oh49ypoh49ypoh49.png",
+    "video": "products/videos/remera_kickboxing.mp4",
+    "currency": "ARS"
+  }
+},
+{
+  "model": "core.category",
+  "pk": 1,
+  "fields": {
+    "title": "Guantes",
+    "slug": "guantes",
+    "description": "Guantes de Boxeo, mma, guantines...",
+    "image": "",
+    "is_active": true
+  }
+},
+{
+  "model": "core.category",
+  "pk": 2,
+  "fields": {
+    "title": "Tibiales",
+    "slug": "tibiales",
+    "description": "Protección para tibias y empeine",
+    "image": "",
+    "is_active": true
+  }
+},
+{
+  "model": "core.category",
+  "pk": 3,
+  "fields": {
+    "title": "Cabezales",
+    "slug": "cabezales",
+    "description": "Proteccion para Cabeza",
+    "image": "",
+    "is_active": true
+  }
+},
+{
+  "model": "core.category",
+  "pk": 4,
+  "fields": {
+    "title": "Vendas",
+    "slug": "vendas",
+    "description": "Vendaje para manos proteccion Boxeo, muay thai , kick boxing...",
+    "image": "",
+    "is_active": true
+  }
+},
+{
+  "model": "core.category",
+  "pk": 5,
+  "fields": {
+    "title": "Bucales",
+    "slug": "bucales",
+    "description": "Proteccion para la boca",
+    "image": "",
+    "is_active": true
+  }
+},
+{
+  "model": "core.category",
+  "pk": 6,
+  "fields": {
+    "title": "Remeras",
+    "slug": "remeras",
+    "description": "",
+    "image": "",
+    "is_active": true
+  }
+},
+{
+  "model": "core.label",
+  "pk": 1,
+  "fields": {
+    "title": "12Oz",
+    "css_class": "secondary",
+    "color": null,
+    "is_active": true
+  }
+},
+{
+  "model": "core.label",
+  "pk": 2,
+  "fields": {
+    "title": "negro",
+    "css_class": "primary",
+    "color": null,
+    "is_active": true
+  }
+},
+{
+  "model": "core.label",
+  "pk": 3,
+  "fields": {
+    "title": "Rojo y negro",
+    "css_class": "primary",
+    "color": null,
+    "is_active": true
+  }
+},
+{
+  "model": "core.label",
+  "pk": 4,
+  "fields": {
+    "title": "algodon",
+    "css_class": "primary",
+    "color": null,
+    "is_active": true
+  }
+}
+]
