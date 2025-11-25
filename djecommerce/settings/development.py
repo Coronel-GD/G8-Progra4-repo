@@ -34,21 +34,12 @@ DEBUG_TOOLBAR_CONFIG = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': config('DB_NAME', default='ecommerce_db'),
         'USER': config('DB_USER', default='postgres'),
-        'PASSWORD': config('DB_PASSWORD', default='postgres'),
+        'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST', default='localhost'),
         'PORT': config('DB_PORT', default='5432'),
     }
 }
-
-# Configuración de GDAL para Windows (PostgreSQL 17)
-import os
-GDAL_LIBRARY_PATH = r'C:\Program Files\PostgreSQL\17\bin\libgdal-35.dll'
-GEOS_LIBRARY_PATH = r'C:\Program Files\PostgreSQL\17\bin\libgeos_c.dll'
-
-# Agregar la ruta de bin al PATH del sistema para cargar dependencias
-# os.environ['PATH'] = r'C:\Program Files\PostgreSQL\17\bin' + ';' + os.environ['PATH']
-
 

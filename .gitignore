@@ -144,3 +144,4 @@ debug_output.txt
 # IDE
 .vscode/
 .idea/
+full_backup.json
